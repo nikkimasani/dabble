@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Dabble — the guilt-free headquarters for serial hobbyists. Track hobbies, works-in-progress, supply stashes, and ideas.">
+<meta name="theme-color" content="#faf4e8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧶</text></svg>">
+<title>Dabble — HQ for Serial Hobbyists</title>
+<style>
+  :root{
+    --paper:#faf4e8; --paper-2:#f3ead9; --card:#fffdf7; --ink:#3b2f26; --ink-soft:#7a6a5b;
+    --terracotta:#c4593b; --terracotta-dk:#a34428; --sage:#7d9471; --sage-dk:#5f7a54;
+    --mustard:#d9a441; --lavender:#9a8fb8; --dusty:#6f8fa8; --frog:#9aa39b;
+    --line:#e5d9c3; --shadow:0 2px 0 #e8dcc6, 0 10px 24px -14px rgba(59,47,38,.35);
+    --r:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,sans-serif; background:var(--paper); color:var(--ink);
+    background-image:radial-gradient(#e9dfc9 1px, transparent 1px); background-size:22px 22px; min-height:100vh;
+  }
+  h1,h2,h3,.serif{font-family:Georgia,"Times New Roman",serif}
+  button{font-family:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit;font-size:.95rem;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:9px 11px;width:100%}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terracotta);box-shadow:0 0 0 3px rgba(196,89,59,.15)}
+  label{display:block;font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 5px}
+
+  header{padding:26px 20px 0;max-width:1060px;margin:0 auto}
+  .masthead{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand h1{font-size:clamp(2rem,5vw,2.9rem);letter-spacing:-.02em}
+  .brand h1 em{color:var(--terracotta);font-style:normal}
+  .brand p{color:var(--ink-soft);font-size:.95rem;margin-top:2px}
+  .tape{display:inline-block;background:rgba(217,164,65,.35);border-left:2px dashed rgba(59,47,38,.2);border-right:2px dashed rgba(59,47,38,.2);padding:3px 14px;transform:rotate(-2deg);font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+
+  nav{max-width:1060px;margin:20px auto 0;padding:0 20px;display:flex;gap:6px;flex-wrap:wrap}
+  nav button{
+    border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);border-radius:999px;
+    padding:9px 18px;font-size:.92rem;font-weight:600;transition:all .15s;border-bottom-width:3px;
+  }
+  nav button:hover{color:var(--ink);transform:translateY(-1px)}
+  nav button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  main{max-width:1060px;margin:0 auto;padding:22px 20px 70px}
+  section{display:none}section.on{display:block;animation:rise .25s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .row h2{font-size:1.5rem}
+  .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.9rem;transition:transform .12s, box-shadow .12s;box-shadow:0 3px 0 rgba(59,47,38,.25)}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(59,47,38,.25)}
+  .btn-t{background:var(--terracotta);color:#fff}.btn-t:hover{background:var(--terracotta-dk)}
+  .btn-s{background:var(--sage);color:#fff}.btn-s:hover{background:var(--sage-dk)}
+  .btn-ghost{background:transparent;border:1.5px dashed var(--ink-soft);color:var(--ink-soft);box-shadow:none}
+  .btn-ghost:hover{color:var(--ink);border-color:var(--ink)}
+  .mini{background:none;border:none;font-size:.8rem;color:var(--ink-soft);font-weight:600;padding:4px 6px;border-radius:6px}
+  .mini:hover{background:var(--paper-2);color:var(--ink)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+  .stat{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .stat b{display:block;font-size:2rem;font-family:Georgia,serif}
+  .stat span{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)}
+  .stat::after{content:"";position:absolute;top:-14px;right:-14px;width:44px;height:44px;border-radius:50%;background:var(--paper-2)}
+
+  .panel{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);margin-bottom:18px}
+  .dash-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+  @media(max-width:760px){.dash-grid{grid-template-columns:1fr}}
+  .spin-zone{text-align:center;padding:28px 20px}
+  .spin-result{font-family:Georgia,serif;font-size:1.35rem;min-height:2.2em;margin:14px 0;transition:color .2s}
+  .spin-result small{display:block;font-family:"Segoe UI",sans-serif;font-size:.8rem;color:var(--ink-soft);margin-top:4px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .card{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);position:relative;transition:transform .15s}
+  .card:hover{transform:translateY(-2px) rotate(-.3deg)}
+  .card .washi{position:absolute;top:-9px;left:20px;width:64px;height:16px;background:rgba(125,148,113,.4);transform:rotate(-3deg);border-left:2px dashed rgba(59,47,38,.15);border-right:2px dashed rgba(59,47,38,.15)}
+  .card h3{font-size:1.08rem;margin:4px 0 6px;display:flex;gap:8px;align-items:center}
+  .card .emoji{font-size:1.5rem}
+  .meta{font-size:.82rem;color:var(--ink-soft)}
+  .card-actions{display:flex;gap:2px;margin-top:10px;flex-wrap:wrap}
+
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:999px;color:#fff}
+  .p-obsessed{background:var(--terracotta)}.p-active{background:var(--sage)}.p-resting{background:var(--lavender)}.p-retired{background:var(--frog)}
+  .p-idea{background:var(--dusty)}.p-inprogress{background:var(--terracotta)}.p-hibernating{background:var(--lavender)}.p-finished{background:var(--sage)}.p-frogged{background:var(--frog)}
+
+  .bar{height:8px;background:var(--paper-2);border-radius:99px;overflow:hidden;margin:10px 0 4px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mustard),var(--terracotta));border-radius:99px;transition:width .3s}
+  input[type=range]{padding:0;height:22px;accent-color:var(--terracotta);border:none;background:transparent}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+  .filters .flabel{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-right:2px}
+  .chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:.82rem;font-weight:600;color:var(--ink-soft)}
+  .chip.on{background:var(--terracotta);border-color:var(--terracotta);color:#fff}
+
+  .stash-table{width:100%;border-collapse:collapse;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+  .stash-table th{background:var(--paper-2);text-align:left;padding:11px 14px;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)}
+  .stash-table td{padding:11px 14px;border-top:1px solid var(--line);font-size:.92rem}
+  .stash-wrap{overflow-x:auto;border-radius:var(--r)}
+  .low{color:var(--terracotta);font-weight:700}
+
+  .idea-add{display:flex;gap:8px;margin-bottom:16px}
+  .idea-add input{flex:1}
+  .idea-card{border-style:dashed;background:#fffef9}
+  .idea-card p{font-size:.98rem;line-height:1.45}
+
+  .empty{text-align:center;padding:44px 20px;color:var(--ink-soft);border:2px dashed var(--line);border-radius:var(--r);background:rgba(255,253,247,.6)}
+  .empty .big{font-size:2.4rem;display:block;margin-bottom:8px}
+
+  dialog{border:none;border-radius:18px;padding:0;max-width:440px;width:92vw;box-shadow:0 30px 60px -20px rgba(59,47,38,.5);background:var(--card)}
+  dialog::backdrop{background:rgba(59,47,38,.45);backdrop-filter:blur(2px)}
+  .modal-head{background:var(--paper-2);padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+  .modal-head h3{font-size:1.15rem}
+  .modal-body{padding:6px 22px 22px}
+  .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+  .x{background:none;border:none;font-size:1.3rem;color:var(--ink-soft);line-height:1}
+
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--paper);padding:12px 22px;border-radius:99px;font-weight:600;font-size:.9rem;transition:transform .25s;z-index:60;pointer-events:none}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  .confetti{position:fixed;top:-14px;width:10px;height:14px;z-index:70;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+  footer{max-width:1060px;margin:0 auto;padding:0 20px 40px;display:flex;gap:14px;align-items:center;color:var(--ink-soft);font-size:.8rem;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="masthead">
+    <div class="brand">
+      <span class="tape">est. whenever inspiration struck</span>
+      <h1>Dab<em>ble</em></h1>
+      <p>The guilt-free headquarters for the serially hobbied.</p>
+    </div>
+  </div>
+</header>
+
+<nav id="nav">
+  <button data-v="dash" class="on">🏡 Dashboard</button>
+  <button data-v="hobbies">🎨 Hobbies</button>
+  <button data-v="projects">🧶 Projects</button>
+  <button data-v="stash">📦 Stash</button>
+  <button data-v="ideas">💡 Ideas</button>
+</nav>
+
+<main>
+  <section id="v-dash" class="on">
+    <div class="stats" id="statGrid"></div>
+    <div class="dash-grid">
+      <div>
+        <div class="panel spin-zone">
+          <h2>Can't decide? 🎡</h2>
+          <p class="meta" style="margin-top:4px">Let fate pick tonight's project from your WIP pile.</p>
+          <div class="spin-result serif" id="spinResult">— the wheel awaits —</div>
+          <button class="btn btn-t" id="spinBtn">Spin for me</button>
+        </div>
+        <div class="panel">
+          <h2 style="font-size:1.15rem">🏆 Hall of Fame</h2>
+          <div id="hallOfFame" style="margin-top:10px"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <h2 style="font-size:1.15rem">🔥 Current obsession</h2>
+          <div id="obsession" style="margin-top:10px"></div>
+        </div>
+        <div class="panel">
+          <h2 style="font-size:1.15rem">🧵 On the table right now</h2>
+          <div id="recentWips" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="v-hobbies">
+    <div class="row"><h2>Your rotation</h2><button class="btn btn-t" onclick="openHobbyModal()">+ New hobby</button></div>
+    <div class="grid" id="hobbyGrid"></div>
+  </section>
+
+  <section id="v-projects">
+    <div class="row"><h2>Projects &amp; WIPs</h2><button class="btn btn-t" onclick="openProjectModal()">+ New project</button></div>
+    <div class="filters" id="projFilters"></div>
+    <div class="filters" id="projHobbyFilters" style="margin-bottom:14px"></div>
+    <div class="grid" id="projGrid"></div>
+  </section>
+
+  <section id="v-stash">
+    <div class="row"><h2>The stash</h2><button class="btn btn-t" onclick="openStashModal()">+ Add supplies</button></div>
+    <div class="filters" id="stashFilters" style="margin-bottom:14px"></div>
+    <div id="stashWrap"></div>
+  </section>
+
+  <section id="v-ideas">
+    <div class="row"><h2>Idea inbox</h2><button class="btn btn-ghost" id="sparkBtn">✨ Random spark</button></div>
+    <div class="idea-add">
+      <input id="ideaInput" maxlength="240" placeholder="Capture it before it escapes… (e.g. resin coasters with pressed violets)">
+      <button class="btn btn-s" id="ideaAddBtn">Stash it</button>
+    </div>
+    <div class="grid" id="ideaGrid"></div>
+  </section>
+</main>
+
+<footer>
+  <span>Everything lives in this browser's localStorage.</span>
+  <button class="mini" id="exportBtn">⬇ Export backup</button>
+  <button class="mini" id="importBtn">⬆ Import backup</button>
+  <input type="file" id="importFile" accept=".json" hidden>
+</footer>
+
+<dialog id="modal">
+  <div class="modal-head"><h3 id="modalTitle">Edit</h3><button class="x" onclick="modal.close()">✕</button></div>
+  <div class="modal-body" id="modalBody"></div>
+</dialog>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ---------- constants ---------- */
+const LS_KEY = "dabble-v1";
+const HOBBY_STATUS = {
+  obsessed:{label:"Obsessed", cls:"p-obsessed"},
+  active:{label:"In rotation", cls:"p-active"},
+  resting:{label:"Resting", cls:"p-resting"},
+  retired:{label:"Retired (for now)", cls:"p-retired"}
+};
+const PROJ_STATUS = {
+  idea:{label:"Idea", cls:"p-idea"},
+  inprogress:{label:"In progress", cls:"p-inprogress"},
+  hibernating:{label:"Hibernating", cls:"p-hibernating"},
+  finished:{label:"Finished", cls:"p-finished"},
+  frogged:{label:"Frogged", cls:"p-frogged"}
+};
+const CONFETTI_COLORS = ["#c4593b","#7d9471","#d9a441","#9a8fb8","#6f8fa8"];
+const SPIN_MS = 1600, SPIN_TICK = 90;
+
+/* ---------- state ---------- */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+function seed(){
+  const h1=uid(),h2=uid(),h3=uid(),h4=uid();
+  return {
+    hobbies:[
+      {id:h1,name:"Knitting",emoji:"🧶",status:"obsessed"},
+      {id:h2,name:"Resin Art",emoji:"💧",status:"active"},
+      {id:h3,name:"Embroidery",emoji:"🪡",status:"resting"},
+      {id:h4,name:"Watercolor",emoji:"🎨",status:"active"}
+    ],
+    projects:[
+      {id:uid(),hobbyId:h1,name:"Chunky autumn cardigan",status:"inprogress",progress:45,notes:"Back panel done. Sleeves are the enemy.",updated:Date.now()},
+      {id:uid(),hobbyId:h2,name:"Ocean wave coasters",status:"hibernating",progress:20,notes:"Waiting on more blue pigment.",updated:Date.now()-86400000*12},
+      {id:uid(),hobbyId:h4,name:"Botanical postcard set",status:"finished",progress:100,notes:"Gifted three, kept one!",updated:Date.now()-86400000*5},
+      {id:uid(),hobbyId:h3,name:"Mushroom hoop sampler",status:"idea",progress:0,notes:"",updated:Date.now()-86400000*2}
+    ],
+    stash:[
+      {id:uid(),hobbyId:h1,name:"Rust merino wool (worsted)",qty:6,unit:"skeins",location:"Cube shelf B",note:""},
+      {id:uid(),hobbyId:h2,name:"Epoxy resin",qty:1,unit:"bottle",location:"Craft closet",note:"running low"},
+      {id:uid(),hobbyId:h3,name:"DMC floss assortment",qty:40,unit:"skeins",location:"Tackle box",note:""}
+    ],
+    ideas:[
+      {id:uid(),text:"Knit tiny pumpkins for everyone at work",hobbyId:h1},
+      {id:uid(),text:"Resin bookmark with pressed ferns",hobbyId:h2},
+      {id:uid(),text:"Learn punch needle?? It looks so satisfying",hobbyId:null}
+    ]
+  };
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return seed();
+    const data = JSON.parse(raw);
+    if(!data || !Array.isArray(data.hobbies)) return seed();
+    return {hobbies:data.hobbies||[],projects:data.projects||[],stash:data.stash||[],ideas:data.ideas||[]};
+  }catch(e){ console.error("load failed",e); return seed(); }
+}
+let state = load();
+const save = () => { try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("⚠ Could not save — storage full?"); } };
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hobbyById = id => state.hobbies.find(h=>h.id===id);
+const hobbyLabel = id => { const h=hobbyById(id); return h ? `${h.emoji} ${esc(h.name)}` : "🗂 Unsorted"; };
+const daysAgo = ts => { if(!ts) return ""; const d=Math.floor((Date.now()-ts)/86400000); return d===0?"today":d===1?"yesterday":`${d}d ago`; };
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
+function confetti(){
+  for(let i=0;i<90;i++){
+    const c=document.createElement("div"); c.className="confetti";
+    c.style.left=Math.random()*100+"vw";
+    c.style.background=CONFETTI_COLORS[i%CONFETTI_COLORS.length];
+    c.style.animationDuration=(1.6+Math.random()*1.6)+"s";
+    c.style.animationDelay=(Math.random()*0.4)+"s";
+    c.style.transform=`rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c); setTimeout(()=>c.remove(),3600);
+  }
+}
+function chime(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    [523.25,659.25,783.99].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type="sine"; o.frequency.value=f; o.connect(g); g.connect(ctx.destination);
+      const t=ctx.currentTime+i*0.12;
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.15,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
+      o.start(t); o.stop(t+0.55);
+    });
+  }catch(e){/* audio blocked — fine */}
+}
+
+/* ---------- navigation ---------- */
+let view="dash";
+$("nav").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-v]"); if(!b) return;
+  view=b.dataset.v;
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("main section").forEach(s=>s.classList.toggle("on",s.id==="v-"+view));
+  render();
+});
+
+/* ---------- modal plumbing ---------- */
+const modal=$("modal");
+function openModal(title, bodyHTML, onSubmit){
+  $("modalTitle").textContent=title;
+  $("modalBody").innerHTML=bodyHTML+`<div class="modal-foot">
+    <button class="btn btn-ghost" type="button" onclick="modal.close()">Cancel</button>
+    <button class="btn btn-t" id="modalSave" type="button">Save</button></div>`;
+  $("modalSave").onclick=()=>{ if(onSubmit()!==false){ modal.close(); save(); render(); } };
+  modal.showModal();
+  const first=$("modalBody").querySelector("input,select,textarea"); if(first) first.focus();
+}
+const hobbyOptions = sel => state.hobbies.map(h=>`<option value="${h.id}" ${h.id===sel?"selected":""}>${h.emoji} ${esc(h.name)}</option>`).join("");
+
+/* ---------- hobbies ---------- */
+function openHobbyModal(id){
+  const h = id ? hobbyById(id) : null;
+  openModal(h?"Edit hobby":"New hobby", `
+    <label>Name</label><input id="f-name" maxlength="60" value="${h?esc(h.name):""}" placeholder="e.g. Crochet">
+    <label>Emoji</label><input id="f-emoji" maxlength="4" value="${h?esc(h.emoji):"✂️"}">
+    <label>Status</label><select id="f-status">${Object.entries(HOBBY_STATUS).map(([k,v])=>`<option value="${k}" ${h&&h.status===k?"selected":""}>${v.label}</option>`).join("")}</select>
+  `, ()=>{
+    const name=$("f-name").value.trim(); if(!name){ toast("Give it a name!"); return false; }
+    const data={name,emoji:$("f-emoji").value.trim()||"✂️",status:$("f-status").value};
+    state = h
+      ? {...state, hobbies: state.hobbies.map(x=>x.id===h.id?{...x,...data}:x)}
+      : {...state, hobbies: [...state.hobbies, {id:uid(),...data}]};
+    toast(h?"Hobby updated":"Welcome to the rotation! 🎉");
+  });
+}
+function deleteHobby(id){
+  const h=hobbyById(id); if(!h) return;
+  const n=state.projects.filter(p=>p.hobbyId===id).length;
+  if(!confirm(`Retire "${h.name}" completely? ${n?`Its ${n} project(s) become Unsorted.`:""}`)) return;
+  state={...state,
+    hobbies:state.hobbies.filter(x=>x.id!==id),
+    projects:state.projects.map(p=>p.hobbyId===id?{...p,hobbyId:null}:p),
+    stash:state.stash.map(s=>s.hobbyId===id?{...s,hobbyId:null}:s),
+    ideas:state.ideas.map(i=>i.hobbyId===id?{...i,hobbyId:null}:i)};
+  if(projHobby===id) projHobby="all";
+  if(stashFilter===id) stashFilter="all";
+  save(); render(); toast("Hobby removed (it'll be back)");
+}
+function renderHobbies(){
+  const g=$("hobbyGrid");
+  if(!state.hobbies.length){ g.innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="big">🌱</span>No hobbies yet — which is suspicious for a connoisseur. Add one!</div>`; return; }
+  g.innerHTML=state.hobbies.map(h=>{
+    const wips=state.projects.filter(p=>p.hobbyId===h.id&&p.status==="inprogress").length;
+    const done=state.projects.filter(p=>p.hobbyId===h.id&&p.status==="finished").length;
+    const supplies=state.stash.filter(s=>s.hobbyId===h.id).length;
+    const st=HOBBY_STATUS[h.status]||HOBBY_STATUS.active;
+    return `<div class="card"><div class="washi"></div>
+      <h3><span class="emoji">${esc(h.emoji)}</span>${esc(h.name)}</h3>
+      <span class="pill ${st.cls}">${st.label}</span>
+      <p class="meta" style="margin-top:10px">${wips} WIP · ${done} finished · ${supplies} stash item${supplies===1?"":"s"}</p>
+      <div class="card-actions">
+        <button class="mini" onclick="openHobbyModal('${h.id}')">✏️ Edit</button>
+        <button class="mini" onclick="deleteHobby('${h.id}')">🗑 Remove</button>
+      </div></div>`;
+  }).join("");
+}
+
+/* ---------- projects ---------- */
+let projFilter="all", projHobby="all";
+function openProjectModal(id, presetName, presetHobby){
+  const p = id ? state.projects.find(x=>x.id===id) : null;
+  openModal(p?"Edit project":"New project", `
+    <label>Project name</label><input id="f-pname" maxlength="90" value="${p?esc(p.name):esc(presetName||"")}" placeholder="e.g. Granny square blanket">
+    <label>Hobby</label><select id="f-phobby"><option value="">🗂 Unsorted</option>${hobbyOptions(p?p.hobbyId:presetHobby)}</select>
+    <label>Status</label><select id="f-pstatus">${Object.entries(PROJ_STATUS).map(([k,v])=>`<option value="${k}" ${p&&p.status===k?"selected":""}>${v.label}</option>`).join("")}</select>
+    <label>Progress — <span id="f-pv">${p?p.progress:0}</span>%</label>
+    <input type="range" id="f-pprog" min="0" max="100" value="${p?p.progress:0}" oninput="document.getElementById('f-pv').textContent=this.value">
+    <label>Notes</label><textarea id="f-pnotes" rows="3" maxlength="500" placeholder="Where you left off, what you need…">${p?esc(p.notes):""}</textarea>
+  `, ()=>{
+    const name=$("f-pname").value.trim(); if(!name){ toast("Name it first!"); return false; }
+    const wasFinished = p && p.status==="finished";
+    const data={name,hobbyId:$("f-phobby").value||null,status:$("f-pstatus").value,progress:+$("f-pprog").value,notes:$("f-pnotes").value.trim(),updated:Date.now()};
+    state = p
+      ? {...state, projects: state.projects.map(x=>x.id===p.id?{...x,...data}:x)}
+      : {...state, projects: [...state.projects, {id:uid(),...data}]};
+    if(data.status==="finished" && !wasFinished) celebrate();
+    else toast(p?"Project updated":"Cast on! 🎉");
+  });
+}
+function celebrate(){ confetti(); chime(); toast("FINISHED! Into the Hall of Fame it goes 🏆"); }
+function setProgress(id,val){
+  state={...state, projects: state.projects.map(p=>p.id===id?{...p,progress:+val,updated:Date.now()}:p)}; save();
+  const el=$("bar-"+id); if(el) el.style.width=val+"%";
+  refreshStats();
+}
+function quickStatus(id,status){
+  const p=state.projects.find(x=>x.id===id); if(!p) return;
+  const wasFinished=p.status==="finished";
+  state={...state, projects: state.projects.map(x=>x.id===id?{...x,status,progress:status==="finished"?100:x.progress,updated:Date.now()}:x)};
+  save(); render();
+  if(status==="finished"&&!wasFinished) celebrate();
+  else if(status==="hibernating") toast("Tucked in for a nap. No guilt. 😴");
+  else if(status==="frogged") toast("Ribbit. The yarn lives to fight another day. 🐸");
+}
+function deleteProject(id){
+  const p=state.projects.find(x=>x.id===id); if(!p||!confirm(`Delete "${p.name}" forever?`)) return;
+  state={...state, projects: state.projects.filter(x=>x.id!==id)}; save(); render(); toast("Project deleted");
+}
+function projCard(p){
+  const st=PROJ_STATUS[p.status]||PROJ_STATUS.idea;
+  const quick = p.status==="finished" ? "" : `
+    ${p.status!=="inprogress"?`<button class="mini" onclick="quickStatus('${p.id}','inprogress')">▶ Work on it</button>`:""}
+    ${p.status==="inprogress"?`<button class="mini" onclick="quickStatus('${p.id}','hibernating')">😴 Hibernate</button>`:""}
+    <button class="mini" onclick="quickStatus('${p.id}','finished')">✅ Finish!</button>
+    ${p.status!=="frogged"?`<button class="mini" onclick="quickStatus('${p.id}','frogged')">🐸 Frog</button>`:""}`;
+  return `<div class="card"><div class="washi"></div>
+    <h3>${esc(p.name)}</h3>
+    <p class="meta">${hobbyLabel(p.hobbyId)} · touched ${daysAgo(p.updated)}</p>
+    <span class="pill ${st.cls}" style="margin-top:8px;display:inline-block">${st.label}</span>
+    <div class="bar"><i id="bar-${p.id}" style="width:${p.progress}%"></i></div>
+    <input type="range" min="0" max="100" value="${p.progress}" onchange="setProgress('${p.id}',this.value)" aria-label="progress">
+    ${p.notes?`<p class="meta" style="margin-top:8px">📝 ${esc(p.notes)}</p>`:""}
+    <div class="card-actions">${quick}
+      <button class="mini" onclick="openProjectModal('${p.id}')">✏️</button>
+      <button class="mini" onclick="deleteProject('${p.id}')">🗑</button>
+    </div></div>`;
+}
+function renderProjects(){
+  const counts=k=>k==="all"?state.projects.length:state.projects.filter(p=>p.status===k).length;
+  $("projFilters").innerHTML=`<span class="flabel">Status</span>`+["all",...Object.keys(PROJ_STATUS)].map(k=>
+    `<button class="chip ${projFilter===k?"on":""}" onclick="projFilter='${k}';render()">${k==="all"?"All":PROJ_STATUS[k].label} (${counts(k)})</button>`).join("");
+  $("projHobbyFilters").innerHTML = state.hobbies.length<2 ? "" :
+    `<span class="flabel">Hobby</span>`+[{id:"all",emoji:"🗃",name:"All"},...state.hobbies].map(h=>
+    `<button class="chip ${projHobby===h.id?"on":""}" onclick="projHobby='${h.id}';render()">${h.emoji} ${esc(h.name)}</button>`).join("");
+  const list=state.projects
+    .filter(p=>projFilter==="all"||p.status===projFilter)
+    .filter(p=>projHobby==="all"||p.hobbyId===projHobby)
+    .sort((a,b)=>(b.updated||0)-(a.updated||0));
+  $("projGrid").innerHTML = list.length ? list.map(projCard).join("")
+    : `<div class="empty" style="grid-column:1/-1"><span class="big">🧺</span>Nothing here. Either you're incredibly disciplined or you should start something new.</div>`;
+}
+
+/* ---------- stash ---------- */
+let stashFilter="all";
+function openStashModal(id){
+  const s = id ? state.stash.find(x=>x.id===id) : null;
+  openModal(s?"Edit supplies":"Add supplies", `
+    <label>Item</label><input id="f-sname" maxlength="90" value="${s?esc(s.name):""}" placeholder="e.g. Sage green DK yarn">
+    <label>Hobby</label><select id="f-shobby"><option value="">🗂 Unsorted</option>${hobbyOptions(s?s.hobbyId:undefined)}</select>
+    <label>Quantity</label><input id="f-sqty" type="number" min="0" step="any" value="${s?s.qty:1}">
+    <label>Unit</label><input id="f-sunit" maxlength="20" value="${s?esc(s.unit):""}" placeholder="skeins / tubes / sheets">
+    <label>Where it lives</label><input id="f-sloc" maxlength="60" value="${s?esc(s.location):""}" placeholder="Craft closet, bin 3…">
+    <label>Note</label><input id="f-snote" maxlength="120" value="${s?esc(s.note):""}" placeholder="dye lot, running low, etc.">
+  `, ()=>{
+    const name=$("f-sname").value.trim(); if(!name){ toast("What is it?"); return false; }
+    const qty=Math.max(0,parseFloat($("f-sqty").value)||0);
+    const data={name,hobbyId:$("f-shobby").value||null,qty,unit:$("f-sunit").value.trim(),location:$("f-sloc").value.trim(),note:$("f-snote").value.trim()};
+    state = s
+      ? {...state, stash: state.stash.map(x=>x.id===s.id?{...x,...data}:x)}
+      : {...state, stash: [...state.stash, {id:uid(),...data}]};
+    toast(s?"Stash updated":"Added to the hoard 📦");
+  });
+}
+function deleteStash(id){
+  const s=state.stash.find(x=>x.id===id); if(!s||!confirm(`Remove "${s.name}" from the stash?`)) return;
+  state={...state, stash: state.stash.filter(x=>x.id!==id)}; save(); render(); toast("Used up (or so we'll say)");
+}
+function renderStash(){
+  const hobbies=[{id:"all",emoji:"🗃",name:"All"},...state.hobbies];
+  $("stashFilters").innerHTML=hobbies.map(h=>
+    `<button class="chip ${stashFilter===h.id?"on":""}" onclick="stashFilter='${h.id}';render()">${h.emoji} ${esc(h.name)}</button>`).join("");
+  const list=state.stash.filter(s=>stashFilter==="all"||s.hobbyId===stashFilter);
+  $("stashWrap").innerHTML = !list.length
+    ? `<div class="empty"><span class="big">📦</span>Empty stash?! Quick, there must be a craft store sale somewhere.</div>`
+    : `<div class="stash-wrap"><table class="stash-table">
+      <tr><th>Item</th><th>Hobby</th><th>Qty</th><th>Location</th><th>Note</th><th></th></tr>
+      ${list.map(s=>`<tr>
+        <td><strong>${esc(s.name)}</strong></td>
+        <td>${hobbyLabel(s.hobbyId)}</td>
+        <td class="${s.qty<=1?"low":""}">${s.qty} ${esc(s.unit)}${s.qty<=1?" ⚠":""}</td>
+        <td>${esc(s.location)||"—"}</td>
+        <td class="meta">${esc(s.note)||""}</td>
+        <td><button class="mini" onclick="openStashModal('${s.id}')">✏️</button><button class="mini" onclick="deleteStash('${s.id}')">🗑</button></td>
+      </tr>`).join("")}</table></div>`;
+}
+
+/* ---------- ideas ---------- */
+function addIdea(){
+  const inp=$("ideaInput"), text=inp.value.trim();
+  if(!text){ toast("An empty idea. How zen."); return; }
+  state={...state, ideas:[{id:uid(),text,hobbyId:null},...state.ideas]};
+  inp.value=""; save(); render(); toast("Idea safely stashed 💡");
+}
+function deleteIdea(id){
+  state={...state, ideas: state.ideas.filter(i=>i.id!==id)}; save(); render();
+}
+function promoteIdea(id){
+  const i=state.ideas.find(x=>x.id===id); if(!i) return;
+  state={...state, ideas: state.ideas.filter(x=>x.id!==id)}; save();
+  openProjectModal(null, i.text, i.hobbyId||undefined);
+  render();
+}
+function renderIdeas(){
+  $("ideaGrid").innerHTML = state.ideas.length ? state.ideas.map(i=>`
+    <div class="card idea-card">
+      <p>💭 ${esc(i.text)}</p>
+      ${i.hobbyId?`<p class="meta" style="margin-top:6px">${hobbyLabel(i.hobbyId)}</p>`:""}
+      <div class="card-actions">
+        <button class="mini" onclick="promoteIdea('${i.id}')">🚀 Make it a project</button>
+        <button class="mini" onclick="deleteIdea('${i.id}')">🗑 Let it go</button>
+      </div></div>`).join("")
+    : `<div class="empty" style="grid-column:1/-1"><span class="big">💭</span>The inbox is empty. Your brain at 2am will fix that.</div>`;
+}
+$("sparkBtn").addEventListener("click",()=>{
+  if(!state.ideas.length) return toast("No ideas to spark — add some!");
+  const i=state.ideas[Math.floor(Math.random()*state.ideas.length)];
+  toast("✨ "+i.text.slice(0,80));
+});
+
+/* ---------- dashboard ---------- */
+function refreshStats(){
+  const wips=state.projects.filter(p=>p.status==="inprogress").length;
+  const hib=state.projects.filter(p=>p.status==="hibernating").length;
+  const done=state.projects.filter(p=>p.status==="finished").length;
+  $("statGrid").innerHTML=`
+    <div class="stat"><b>${wips}</b><span>Active WIPs</span></div>
+    <div class="stat"><b>${hib}</b><span>Hibernating</span></div>
+    <div class="stat"><b>${done}</b><span>Finished 🏆</span></div>
+    <div class="stat"><b>${state.ideas.length}</b><span>Ideas brewing</span></div>
+    <div class="stat"><b>${state.stash.length}</b><span>Stash items</span></div>`;
+}
+function renderDash(){
+  refreshStats();
+  const ob = state.hobbies.find(h=>h.status==="obsessed");
+  $("obsession").innerHTML = ob
+    ? `<h3 style="font-size:1.3rem"><span style="font-size:1.6rem">${esc(ob.emoji)}</span> ${esc(ob.name)}</h3>
+       <p class="meta" style="margin-top:4px">${state.projects.filter(p=>p.hobbyId===ob.id&&p.status==="inprogress").length} project(s) feeding the fixation.</p>`
+    : `<p class="meta">No official obsession right now. Mark a hobby as "Obsessed" — you know there is one.</p>`;
+  const wips=state.projects.filter(p=>p.status==="inprogress").sort((a,b)=>(b.updated||0)-(a.updated||0)).slice(0,4);
+  $("recentWips").innerHTML = wips.length
+    ? wips.map(p=>`<div style="padding:8px 0;border-bottom:1px dashed var(--line)">
+        <strong>${esc(p.name)}</strong> <span class="meta">· ${hobbyLabel(p.hobbyId)}</span>
+        <div class="bar"><i style="width:${p.progress}%"></i></div></div>`).join("")
+    : `<p class="meta">Nothing in progress. A rare and fleeting state.</p>`;
+  const done=state.projects.filter(p=>p.status==="finished").sort((a,b)=>(b.updated||0)-(a.updated||0)).slice(0,5);
+  $("hallOfFame").innerHTML = done.length
+    ? done.map(p=>`<div style="padding:7px 0;border-bottom:1px dashed var(--line)">🏅 <strong>${esc(p.name)}</strong> <span class="meta">· ${hobbyLabel(p.hobbyId)} · ${daysAgo(p.updated)}</span></div>`).join("")
+    : `<p class="meta">No finishes yet. The first one is going to feel amazing.</p>`;
+}
+
+/* ---------- spin the wheel ---------- */
+$("spinBtn").addEventListener("click",()=>{
+  const pool=state.projects.filter(p=>p.status==="inprogress"||p.status==="hibernating");
+  const out=$("spinResult");
+  if(!pool.length){ out.innerHTML=`<span class="meta">No WIPs to choose from — start something first!</span>`; return; }
+  const btn=$("spinBtn"); btn.disabled=true;
+  const t0=Date.now();
+  const tick=setInterval(()=>{
+    const p=pool[Math.floor(Math.random()*pool.length)];
+    out.style.color="var(--ink-soft)"; out.textContent=p.name;
+    if(Date.now()-t0>SPIN_MS){
+      clearInterval(tick);
+      const pick=pool[Math.floor(Math.random()*pool.length)];
+      out.style.color="var(--terracotta)";
+      out.innerHTML=`🎯 ${esc(pick.name)}<small>${hobbyLabel(pick.hobbyId)} · ${pick.progress}% done — the wheel has spoken.</small>`;
+      btn.disabled=false; chime();
+    }
+  },SPIN_TICK);
+});
+
+/* ---------- backup ---------- */
+$("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="dabble-backup.json"; a.click(); URL.revokeObjectURL(a.href);
+  toast("Backup downloaded ⬇");
+});
+$("importBtn").addEventListener("click",()=>$("importFile").click());
+$("importFile").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||!Array.isArray(d.hobbies)||!Array.isArray(d.projects)) throw new Error("bad shape");
+      if(!confirm("Replace everything with this backup?")) return;
+      state={hobbies:d.hobbies,projects:d.projects||[],stash:d.stash||[],ideas:d.ideas||[]};
+      save(); render(); toast("Backup restored ⬆");
+    }catch(err){ toast("⚠ That file doesn't look like a Dabble backup"); }
+  };
+  r.readAsText(f); e.target.value="";
+});
+
+/* ---------- idea input ---------- */
+$("ideaAddBtn").addEventListener("click",addIdea);
+$("ideaInput").addEventListener("keydown",e=>{ if(e.key==="Enter") addIdea(); });
+
+/* ---------- render root ---------- */
+function render(){ renderDash(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); }
+save(); render();
+</script>
+</body>
+</html>
