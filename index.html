@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Dabble — the guilt-free headquarters for serial hobbyists. Track hobbies, works-in-progress, supply stashes, and ideas.">
+<meta name="description" content="Craft Club — the guilt-free headquarters for serial hobbyists. Explore 100+ crafts with project ideas and resources, track hobbies, WIPs, stash, and ideas.">
 <meta name="theme-color" content="#faf4e8">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧶</text></svg>">
-<title>Dabble — HQ for Serial Hobbyists</title>
+<title>Craft Club — HQ for Serial Hobbyists</title>
 <style>
   :root{
     --paper:#faf4e8; --paper-2:#f3ead9; --card:#fffdf7; --ink:#3b2f26; --ink-soft:#7a6a5b;
@@ -105,6 +105,22 @@
   .empty{text-align:center;padding:44px 20px;color:var(--ink-soft);border:2px dashed var(--line);border-radius:var(--r);background:rgba(255,253,247,.6)}
   .empty .big{font-size:2.4rem;display:block;margin-bottom:8px}
 
+  .exp-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .exp-head input{max-width:340px}
+  .dots{letter-spacing:2px;color:var(--terracotta);font-size:.8rem}
+  .dots span{color:var(--line)}
+  .cost{color:var(--sage-dk);font-weight:700}
+  .craft-card details{margin-top:10px}
+  .craft-card summary{cursor:pointer;font-size:.85rem;font-weight:700;color:var(--terracotta);list-style-position:inside}
+  .craft-card summary:hover{color:var(--terracotta-dk)}
+  .idea-line{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
+  .idea-line span{flex:1}
+  .rsc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+  .rsc-grid .card:hover{transform:none}
+  .rsc-item{padding:8px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
+  .rsc-item a{color:var(--terracotta);font-weight:700;text-decoration:none}
+  .rsc-item a:hover{text-decoration:underline}
+
   dialog{border:none;border-radius:18px;padding:0;max-width:440px;width:92vw;box-shadow:0 30px 60px -20px rgba(59,47,38,.5);background:var(--card)}
   dialog::backdrop{background:rgba(59,47,38,.45);backdrop-filter:blur(2px)}
   .modal-head{background:var(--paper-2);padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
@@ -126,18 +142,20 @@
   <div class="masthead">
     <div class="brand">
       <span class="tape">est. whenever inspiration struck</span>
-      <h1>Dab<em>ble</em></h1>
-      <p>The guilt-free headquarters for the serially hobbied.</p>
+      <h1>Craft <em>Club</em></h1>
+      <p>The guilt-free headquarters for the serially hobbied — every craft, idea &amp; resource inside.</p>
     </div>
   </div>
 </header>
 
 <nav id="nav">
   <button data-v="dash" class="on">🏡 Dashboard</button>
+  <button data-v="explore">🧭 Explore</button>
   <button data-v="hobbies">🎨 Hobbies</button>
   <button data-v="projects">🧶 Projects</button>
   <button data-v="stash">📦 Stash</button>
   <button data-v="ideas">💡 Ideas</button>
+  <button data-v="resources">📚 Resources</button>
 </nav>
 
 <main>
@@ -160,6 +178,10 @@
         <div class="panel">
           <h2 style="font-size:1.15rem">🔥 Current obsession</h2>
           <div id="obsession" style="margin-top:10px"></div>
+        </div>
+        <div class="panel">
+          <h2 style="font-size:1.15rem">🎁 Craft of the day</h2>
+          <div id="cotd" style="margin-top:10px"></div>
         </div>
         <div class="panel">
           <h2 style="font-size:1.15rem">🧵 On the table right now</h2>
@@ -195,6 +217,20 @@
     </div>
     <div class="grid" id="ideaGrid"></div>
   </section>
+
+  <section id="v-explore">
+    <div class="row"><h2>Explore the craft universe</h2><span class="meta" id="expCount"></span></div>
+    <div class="exp-head">
+      <input id="expSearch" maxlength="60" placeholder="Search crafts &amp; ideas… (e.g. resin, beginner, flowers, cozy)">
+    </div>
+    <div class="filters" id="expCats" style="margin-bottom:14px"></div>
+    <div class="grid" id="expGrid"></div>
+  </section>
+
+  <section id="v-resources">
+    <div class="row"><h2>Resource library</h2><span class="meta">Handpicked places to learn, shop &amp; lurk</span></div>
+    <div class="rsc-grid" id="rscWrap"></div>
+  </section>
 </main>
 
 <footer>
@@ -229,6 +265,211 @@ const PROJ_STATUS = {
 };
 const CONFETTI_COLORS = ["#c4593b","#7d9471","#d9a441","#9a8fb8","#6f8fa8"];
 const SPIN_MS = 1600, SPIN_TICK = 90;
+
+/* ---------- the craft universe (n=name, e=emoji, b=blurb, d=difficulty 1-3, c=startup cost 1-3, i=project ideas) ---------- */
+const CRAFT_CATALOG = [
+ {cat:"Fiber & Yarn", emoji:"🧶", crafts:[
+  {n:"Knitting",e:"🧶",b:"Two sticks, string, and infinite cozy.",d:2,c:2,i:["Chunky ribbed beanie","Garter-stitch ombré scarf","Cabled ear-warmer headband","Oversized weekend cardigan","Tiny pumpkins for coworkers"]},
+  {n:"Crochet",e:"🪝",b:"One hook does it all — blankets to bucket hats.",d:2,c:1,i:["Granny square lap blanket","Market tote from cotton yarn","Retro flower coasters","Ripple-stitch baby blanket","Crochet bucket hat"]},
+  {n:"Amigurumi",e:"🐙",b:"Crocheted creatures with too much personality.",d:2,c:1,i:["Emotional support octopus","Tiny frog with a lily pad","Sushi roll keychains","A potted cactus that never dies"]},
+  {n:"Macramé",e:"🪢",b:"Knots become wall art and plant hangers.",d:1,c:1,i:["Plant hanger for the pothos","Boho wall hanging","Tasseled keychains","Macramé fruit hammock"]},
+  {n:"Weaving",e:"🧵",b:"Lap looms, tapestry, and texture on texture.",d:2,c:2,i:["Woven wall tapestry","Rainbow coaster set","Woven pouch from scrap yarn","Circular sunrise wall piece"]},
+  {n:"Punch Needle",e:"🎯",b:"Thread painting that feels like stabbing (nicely).",d:1,c:1,i:["Mushroom mini rug","Punch needle pillow cover","Abstract wall hoop","Coaster with your pet's face"]},
+  {n:"Needle Felting",e:"🐑",b:"Stab wool until it becomes a tiny animal.",d:2,c:1,i:["Felted bumblebee","Miniature penguin","Felted portrait of your pet","Toadstool ornament set"]},
+  {n:"Wet Felting",e:"💦",b:"Soap, water, wool — instant fabric magic.",d:2,c:1,i:["Felted soap bars","Marbled wool trivet","Felt bead necklace","Cozy felted slippers"]},
+  {n:"Latch Hook",e:"🛋",b:"Retro rug-making, deeply satisfying.",d:1,c:1,i:["Checkerboard mini rug","Smiley face cushion","Retro flower wall art","Fluffy cloud rug"]},
+  {n:"Hand Spinning",e:"🌀",b:"Turn raw fluff into your own yarn.",d:3,c:2,i:["Drop-spindle first skein","Ply two hand-dyed rovings","Wild-texture art yarn","Spin then knit a headband"]}
+ ]},
+ {cat:"Needle & Thread", emoji:"🪡", crafts:[
+  {n:"Embroidery",e:"🪡",b:"Slow stitches, big charm.",d:1,c:1,i:["Botanical hoop sampler","Embroidered jean jacket back","Constellation map hoop","Stitched portrait of your plant shelf"]},
+  {n:"Cross-Stitch",e:"❌",b:"Pixel art with floss.",d:1,c:1,i:["Sassy quote sampler","Video-game pixel characters","Seasonal ornament set","Bookmark with a tassel"]},
+  {n:"Sashiko",e:"🌊",b:"Japanese running-stitch geometry.",d:1,c:1,i:["Sashiko-mended jeans","Wave-pattern coasters","Stitched tote panel","Indigo table runner"]},
+  {n:"Quilting",e:"🛏",b:"Patchwork puzzles you can nap under.",d:3,c:2,i:["Nine-patch baby quilt","T-shirt memory quilt","Quilted mug rugs","Scrappy log-cabin throw"]},
+  {n:"Garment Sewing",e:"🧷",b:"Make clothes that actually fit you.",d:3,c:2,i:["Elastic-waist skirt","Pajama pants","Boxy linen top","Tote from fabric scraps"]},
+  {n:"Visible Mending",e:"🩹",b:"Fix clothes loudly and proudly.",d:1,c:1,i:["Patched sweater elbows","Darned rainbow socks","Sashiko knee patches","Embroidered stain cover-up"]},
+  {n:"Appliqué",e:"🌸",b:"Fabric-on-fabric collage.",d:2,c:1,i:["Appliqué flower pillow","Landscape mini quilt","Monogrammed tea towels","Denim jacket patches"]},
+  {n:"English Paper Piecing",e:"🐝",b:"Hand-sewn hexies, extremely portable.",d:2,c:1,i:["Hexie pincushion","EPP zipper pouch","Rainbow hexagon mini quilt","Hexie coaster set"]}
+ ]},
+ {cat:"Paper Crafts", emoji:"📄", crafts:[
+  {n:"Origami",e:"🦢",b:"Folded paper, zero glue, pure geometry.",d:1,c:1,i:["1,000 paper cranes (or just 10)","Modular origami star","Origami bookmark corners","Paper flower bouquet"]},
+  {n:"Quilling",e:"🌀",b:"Coiled paper strips become lace-like art.",d:2,c:1,i:["Quilled monogram letter","Snowflake ornament set","Framed quilled flowers","Greeting card toppers"]},
+  {n:"Bookbinding",e:"📖",b:"Make the notebook of your dreams.",d:2,c:1,i:["Coptic-stitch sketchbook","Pamphlet-stitch mini zines","Leather-wrapped journal","Recipe book from scratch"]},
+  {n:"Junk Journaling",e:"🗞",b:"Scraps, ephemera, and glorious chaos.",d:1,c:1,i:["Coffee-dyed page spreads","Pocket-and-tuck pages","Vintage postcard journal","Monthly memory-keeping spread"]},
+  {n:"Scrapbooking",e:"📔",b:"Photos plus paper plus feelings.",d:1,c:2,i:["Year-in-review album","Travel mini-book","Pet baby book","Holiday traditions layout"]},
+  {n:"Card Making",e:"💌",b:"Handmade cards people actually keep.",d:1,c:1,i:["Birthday card stash for the year","Pop-up surprise card","Watercolor-splash thank-yous","Interactive slider card"]},
+  {n:"Papercutting",e:"✂️",b:"Knife, paper, negative space.",d:2,c:1,i:["Layered paper light box","Silhouette family portrait","Papercut botanical frame","Intricate paper snowflakes"]},
+  {n:"Paper Mâché",e:"🎭",b:"Balloon + paste = sculpture.",d:1,c:1,i:["Decorative fruit bowl","Halloween mask","Piñata for the next party","Giant paper mushroom"]},
+  {n:"Collage & Decoupage",e:"🖼",b:"Cut, paste, transform.",d:1,c:1,i:["Magazine mood-board art","Decoupage trinket tray","Vision board 2.0","Decoupaged flower pots"]}
+ ]},
+ {cat:"Paint & Draw", emoji:"🎨", crafts:[
+  {n:"Watercolor",e:"💧",b:"Pigment, water, and happy accidents.",d:2,c:1,i:["Botanical postcard set","Loose florals in a sketchbook","Sunset gradient studies","Illustrated recipe card"]},
+  {n:"Gouache",e:"🖌",b:"Watercolor's velvety, opaque cousin.",d:2,c:1,i:["Matisse-style still life","Tiny landscape a day for a week","Retro travel poster","Moody nightscape"]},
+  {n:"Acrylic Painting",e:"🎨",b:"Fast-drying and forgiving.",d:2,c:1,i:["Abstract palette-knife canvas","Paint-along mountain scene","Mini canvas magnets","Color-block wall art"]},
+  {n:"Oil Painting",e:"🖼",b:"Slow, buttery, classical.",d:3,c:2,i:["Alla prima fruit study","Cloudscape on canvas board","Master study of a favorite painting","Tiny daily landscape"]},
+  {n:"Acrylic Pouring",e:"🌊",b:"Tilt the canvas, let physics paint.",d:1,c:2,i:["Dutch-pour florals","Geode-inspired canvas","Pour-painted plant pots","Set of abstract coasters"]},
+  {n:"Sketching & Drawing",e:"✏️",b:"A pencil and anywhere to sit.",d:1,c:1,i:["30-day sketchbook challenge","Draw your coffee cup daily","Blind contour portrait night","Urban sketch your street"]},
+  {n:"Ink & Linework",e:"🖋",b:"Crisp lines and crosshatching.",d:2,c:1,i:["Month of ink prompts","Stippled animal portrait","Botanical line-art prints","Pen-and-wash cityscape"]},
+  {n:"Pastels",e:"🌈",b:"Blendy, dusty, glowing color.",d:2,c:1,i:["Soft pastel sunset","Chalk pastel pet portrait","Oil pastel still life","Abstract color-field study"]},
+  {n:"Digital Art",e:"🖥",b:"Undo button included.",d:2,c:2,i:["Design your own phone wallpaper","Digital sticker pack","Portrait study in a drawing app","Animated GIF doodle"]}
+ ]},
+ {cat:"Calligraphy & Lettering", emoji:"✒️", crafts:[
+  {n:"Modern Calligraphy",e:"✒️",b:"Pointed pen, swoopy letters.",d:2,c:1,i:["Address envelopes beautifully","Favorite quote wall print","Practice drills sampler","Name cards for a dinner"]},
+  {n:"Brush Lettering",e:"🖌",b:"Brush pens, instant charm.",d:1,c:1,i:["Lettered affirmation cards","Chalkboard kitchen menu","Greeting card sentiments","Alphabet practice zine"]},
+  {n:"Hand Lettering",e:"✏️",b:"Draw letters instead of writing them.",d:1,c:1,i:["Faux calligraphy gift tags","Lettered book-quote poster","Monogram design","Decorated recipe titles"]},
+  {n:"Illuminated Letters",e:"📜",b:"Medieval-style gold and flourish.",d:3,c:1,i:["Gilded initial in a frame","Illuminated bookplate","Decorated family motto","Gold-leaf birthday card"]}
+ ]},
+ {cat:"Clay & Ceramics", emoji:"🏺", crafts:[
+  {n:"Wheel Pottery",e:"🏺",b:"Centering clay, centering self.",d:3,c:3,i:["Set of little bowls","Your everyday mug","Bud vases in graduating sizes","Trinket dishes for every room"]},
+  {n:"Handbuilding",e:"🫖",b:"Pinch, coil, slab — no wheel needed.",d:2,c:2,i:["Pinch-pot planters","Slab-built butter dish","Coil vase with texture","Face mug with personality"]},
+  {n:"Polymer Clay",e:"🌈",b:"Oven-bake anything: charms, dishes, décor.",d:1,c:1,i:["Terrazzo trinket dish","Food miniature magnets","Marbled clay coasters","Plant stakes with little faces"]},
+  {n:"Air-Dry Clay",e:"☁️",b:"No kiln, no problem.",d:1,c:1,i:["Boho wall hangings","Jewelry dish with pressed lace","Mini ring cones","Hand-stamped ornaments"]},
+  {n:"Sculpting",e:"🗿",b:"Push clay until it looks back.",d:3,c:2,i:["Bust study of a face","Fantasy creature maquette","Relief tile of your house","Hands study (the hard one)"]},
+  {n:"Kintsugi",e:"✨",b:"Repair pottery with gold, celebrate the cracks.",d:2,c:2,i:["Rescue a broken favorite mug","Gold-seamed thrifted bowl","Kintsugi-style planter","Mosaic from unfixable pieces"]}
+ ]},
+ {cat:"Candles, Soap & Resin", emoji:"🕯", crafts:[
+  {n:"Resin Art",e:"💧",b:"Liquid glass with anything you like inside.",d:2,c:2,i:["Ocean-wave coasters","Pressed-flower bookmark","Dice with glitter storms","Trinket tray with gold flakes"]},
+  {n:"Candle Making",e:"🕯",b:"Wax, wick, and a signature scent.",d:1,c:1,i:["Soy candles in thrifted teacups","Layered scent trio","Sculptural pillar candles","Wood-wick amber jars"]},
+  {n:"Soap Making",e:"🧼",b:"Kitchen chemistry that smells amazing.",d:2,c:2,i:["Marbled melt-and-pour bars","Oatmeal honey soap","Embedded flower guest soaps","Coffee-scrub kitchen bars"]},
+  {n:"Bath Bombs",e:"🛁",b:"Fizzy little chemistry gifts.",d:1,c:1,i:["Lavender sleepy-time bombs","Rainbow surprise-inside bombs","Citrus wake-up set","Holiday gift box assortment"]},
+  {n:"Wax Melts",e:"🫠",b:"All the scent, none of the flame.",d:1,c:1,i:["Seasonal scent sampler","Botanical-topped melts","Custom scent blends","Gift tin collection"]},
+  {n:"Concrete & Plaster Casting",e:"🪨",b:"Brutalist charm for your shelves.",d:2,c:1,i:["Geometric planters","Terrazzo-chip coasters","Cast candle holders","Ring dishes with gold rims"]}
+ ]},
+ {cat:"Jewelry", emoji:"💍", crafts:[
+  {n:"Beaded Jewelry",e:"📿",b:"Patterns, colors, instant gratification.",d:1,c:1,i:["Seed-bead daisy chain","Statement earrings","Beaded phone charm","Stacking bracelet set"]},
+  {n:"Wire Wrapping",e:"➰",b:"Twist wire into settings and swirls.",d:2,c:1,i:["Wrapped crystal pendant","Wire ring stack","Tree-of-life pendant","Delicate ear cuffs"]},
+  {n:"Polymer Clay Earrings",e:"🟠",b:"The it-girl of craft fairs.",d:1,c:1,i:["Terrazzo arch dangles","Floral-cane studs","Marbled hoops","Seasonal drop collection"]},
+  {n:"Friendship Bracelets",e:"🧵",b:"Summer camp never ended.",d:1,c:1,i:["Chevron classics","Name bracelets","Wave-pattern set","Bracelet trade stack"]},
+  {n:"Metal Stamping",e:"🔨",b:"Hammer words into metal.",d:1,c:1,i:["Coordinates keychain","Pet-name tags","Stamped washer necklace","Inspirational cuff"]},
+  {n:"Resin Jewelry",e:"💎",b:"Tiny worlds sealed in clarity.",d:2,c:2,i:["Flower-petal studs","Glitter-galaxy pendants","Botanical hair pins","Initial charm bracelet"]}
+ ]},
+ {cat:"Wood & Glass", emoji:"🪵", crafts:[
+  {n:"Woodworking",e:"🪚",b:"Sawdust therapy.",d:3,c:3,i:["Cutting board with juice groove","Floating shelves","Sturdy step stool","Yarn & thread storage rack"]},
+  {n:"Pyrography",e:"🔥",b:"Draw with fire on wood.",d:1,c:1,i:["Burned mountain-scene spoons","Custom coasters","Garden plant markers","Welcome sign on a wood slice"]},
+  {n:"Whittling & Carving",e:"🔪",b:"A knife, a stick, a tiny gnome.",d:2,c:1,i:["Comfort bird for the hand","Little forest gnome","Carved butter spreader","Simple carved cup"]},
+  {n:"Scroll Saw Art",e:"🧩",b:"Curvy cuts, puzzle pieces, name signs.",d:2,c:2,i:["Animal puzzle for a kid","Layered mandala art","Family name sign","State-shaped ornament"]},
+  {n:"Furniture Flipping",e:"🛋",b:"Trash-day treasures, reborn.",d:2,c:2,i:["Two-tone dresser makeover","Caned-seat chair rescue","Decoupage side table","Milk-paint nightstand"]},
+  {n:"Stained Glass",e:"🪟",b:"Sunlight's favorite craft.",d:3,c:3,i:["Moon-phase suncatcher set","Plant-themed window panel","Geometric candle holder","Little glass mushroom"]},
+  {n:"Glass Painting & Etching",e:"🥃",b:"Turn plain glass into custom ware.",d:1,c:1,i:["Etched monogram glasses","Painted wine-glass set","Faux stained-glass window cling","Frosted herb jars"]},
+  {n:"Mosaic",e:"🪞",b:"Broken pieces, whole pictures.",d:2,c:2,i:["Mosaic stepping stone","Tiled flower pot","Mirror frame makeover","Penny-tile serving tray"]}
+ ]},
+ {cat:"Textile & Leather", emoji:"👜", crafts:[
+  {n:"Leathercraft",e:"👜",b:"Cut, stitch, stamp, heirloom.",d:2,c:2,i:["Saddle-stitched card wallet","Stamped keychains","Leather journal cover","Simple everyday tote"]},
+  {n:"Tie-Dye",e:"🌈",b:"Rubber bands + dye = joy.",d:1,c:1,i:["Ice-dye hoodie","Spiral tee classics","Dyed socks gift pack","Crumple-dye pillowcases"]},
+  {n:"Shibori & Indigo",e:"🟦",b:"Japanese resist dyeing in deep blue.",d:2,c:1,i:["Folded-clamp tea towels","Indigo napkin set","Pole-wrapped scarf","Patchwork wall hanging from tests"]},
+  {n:"Natural Dyeing",e:"🌿",b:"Onion skins and avocado pits, secretly gorgeous.",d:2,c:1,i:["Avocado-pink tote","Turmeric-gold bandana","Botanical bundle-dye silk scarf","Dye swatch journal"]},
+  {n:"Block Printing",e:"🔳",b:"Carve a stamp, print everything.",d:1,c:1,i:["Carved-stamp tea towels","Repeat-pattern wrapping paper","Printed tote bag","Custom stationery set"]},
+  {n:"Screen Printing",e:"🖨",b:"Your designs on actual shirts.",d:2,c:2,i:["Tee for a band that doesn't exist","Art prints, edition of 10","Printed patches","Tote with your motto"]},
+  {n:"Batik",e:"🌺",b:"Wax-resist painting on fabric.",d:3,c:2,i:["Batik bandana","Wax-drawn wall hanging","Batik-border napkins","Sarong experiment"]}
+ ]},
+ {cat:"Nature Crafts", emoji:"🌿", crafts:[
+  {n:"Pressed Flowers",e:"🌸",b:"Flatten spring, keep it forever.",d:1,c:1,i:["Pressed-flower frame art","Laminated bookmarks","Pressed-flower phone case","Herbarium journal"]},
+  {n:"Wreaths & Dried Florals",e:"🌾",b:"Everlasting arrangements for every season.",d:1,c:2,i:["Dried-grass fall wreath","Lavender bundle swag","Everlasting bouquet","Citrus-slice garland"]},
+  {n:"Terrariums",e:"🫙",b:"Tiny ecosystems in glass.",d:1,c:2,i:["Closed fern terrarium","Succulent bowl garden","Moss-and-figurine scene","Air-plant hanging globe"]},
+  {n:"Kokedama",e:"🌱",b:"Moss-ball plants that float.",d:2,c:1,i:["Kokedama string garden","Fern moss ball","Orchid kokedama","Kitchen herb kokedama"]},
+  {n:"Rock Painting",e:"🪨",b:"Paint pebbles, hide them, delight strangers.",d:1,c:1,i:["Mandala dot stones","Kindness rocks to hide","Ladybug garden markers","Story stones for kids"]},
+  {n:"Foraged Crafts",e:"🍂",b:"Pinecones, acorns, and sticks with potential.",d:1,c:1,i:["Pinecone fire starters","Twig star ornaments","Leaf-print clay dishes","Driftwood mobile"]}
+ ]},
+ {cat:"Kitchen Crafts", emoji:"🍰", crafts:[
+  {n:"Cake Decorating",e:"🎂",b:"Buttercream is an art supply.",d:2,c:2,i:["Vintage-piped birthday cake","Ombré rosette cake","Lambeth-style mini cake","Character cake for a kid"]},
+  {n:"Cookie Decorating",e:"🍪",b:"Royal icing, steady hands.",d:2,c:1,i:["Marbled holiday set","Paint-your-own cookie kits","Floral sugar cookies","Stained-glass window cookies"]},
+  {n:"Sourdough",e:"🍞",b:"Feed the starter, feed yourself.",d:2,c:1,i:["Your signature everyday loaf","Scored wheat-stalk art loaf","Sourdough focaccia garden","Discard crackers & pancakes"]},
+  {n:"Chocolate Work",e:"🍫",b:"Temper tantrums (the good kind).",d:2,c:2,i:["Filled bonbon box","Chocolate bark trio","Hot-cocoa bombs","Molded holiday shapes"]},
+  {n:"Jam & Preserving",e:"🍓",b:"Summer in a jar.",d:1,c:1,i:["Strawberry-vanilla jam","Quick-pickle everything","Marmalade experiment","Gift basket of tiny jars"]},
+  {n:"Fermentation",e:"🫙",b:"Bubbly countertop science.",d:1,c:1,i:["First kimchi batch","Ginger bug soda","Garlic honey","Kombucha with wild flavors"]},
+  {n:"Pasta Making",e:"🍝",b:"Flour + eggs + patience.",d:2,c:1,i:["Hand-cut tagliatelle night","Ravioli with surprise fillings","Colorful striped pasta","Gnocchi from scratch"]}
+ ]},
+ {cat:"Maker & Tech", emoji:"🖨", crafts:[
+  {n:"3D Printing",e:"🖨",b:"Draw it, print it, hold it.",d:2,c:3,i:["Custom yarn bowl","Desk cable organizers","Articulated dragon","Cookie cutters of anything"]},
+  {n:"Cricut & Vinyl",e:"💠",b:"A cutting machine is a sticker factory.",d:1,c:2,i:["Custom mugs & tumblers","Iron-on tote designs","Wall decal quotes","Planner sticker sheets"]},
+  {n:"Cosplay & Props",e:"🛡",b:"EVA foam and dreams.",d:3,c:2,i:["Foam sword build","Character helmet","Wearable wings","Thrift-flip costume"]},
+  {n:"Miniatures & Dollhouses",e:"🏠",b:"Tiny rooms, huge patience.",d:2,c:2,i:["Book nook shelf insert","Miniature craft room (meta!)","Tiny polymer food set","Haunted dollhouse"]},
+  {n:"Model Kits",e:"🤖",b:"Snap, glue, paint, display.",d:1,c:2,i:["First model robot build","Weathered plane diorama","Custom-painted mech","Display base with LEDs"]},
+  {n:"Electronics & Arduino",e:"🔌",b:"Blinky things you built yourself.",d:3,c:2,i:["LED mood lamp","Plant moisture alarm","Retro game handheld kit","Motion-sensor night light"]},
+  {n:"LEGO Building",e:"🧱",b:"Instructions optional.",d:1,c:2,i:["Build your own house in bricks","Flower bouquet build","Modular street corner","Mosaic portrait"]},
+  {n:"Sticker Making",e:"🏷",b:"Doodles become merch.",d:1,c:1,i:["Hand-drawn sticker sheet","Holographic laptop set","Planner icon pack","Sticker club for friends"]}
+ ]},
+ {cat:"Cozy Kits & Quiet Hands", emoji:"🛋", crafts:[
+  {n:"Diamond Painting",e:"💎",b:"Sparkly paint-by-sticker meditation.",d:1,c:1,i:["Starry night in diamonds","Custom photo canvas","Bookmark kit stash-buster","Seasonal coaster kits"]},
+  {n:"Paint by Numbers",e:"🔢",b:"Guided painting, guaranteed win.",d:1,c:1,i:["Custom pet portrait kit","Vintage landscape","Two-panel diptych","Frame-worthy florals"]},
+  {n:"Perler & Fuse Beads",e:"🟣",b:"Pixel art you can iron.",d:1,c:1,i:["Retro game sprites","Fridge magnet set","Coaster collection","Keychain zoo"]},
+  {n:"Puzzles",e:"🧩",b:"1,000 pieces of quiet.",d:1,c:1,i:["Gradient puzzle challenge","Puzzle-then-glue wall art","Mystery puzzle night","Wooden whimsy-piece puzzle"]},
+  {n:"Journaling & BuJo",e:"📓",b:"Your life, but organized and decorated.",d:1,c:1,i:["Monthly spread themes","Habit tracker garden","Memory-keeping pages","Reading journal setup"]},
+  {n:"Adult Coloring",e:"🖍",b:"Low stakes, high color.",d:1,c:1,i:["Marker gradient practice","Colored-pencil botanical page","Color-along with a podcast","Frame your best page"]}
+ ]},
+ {cat:"Beyond the Craft Room", emoji:"🌍", crafts:[
+  {n:"Photography",e:"📷",b:"Light hunting.",d:2,c:2,i:["Golden-hour walk series","Macro flowers at home","52-week photo challenge","Print a mini photo book"]},
+  {n:"Creative Writing",e:"✍️",b:"Worlds from a blank page.",d:1,c:1,i:["100-word story a day","Poem for each season","Start the cozy mystery","Letters to future you"]},
+  {n:"Learn an Instrument",e:"🎸",b:"Calluses and small victories.",d:3,c:2,i:["Three-chord song in a week","Ukulele campfire set","30-day practice streak","Record a tiny cover"]},
+  {n:"Birdwatching",e:"🐦",b:"Collecting creatures, but real.",d:1,c:1,i:["Backyard feeder log","Life list: first 25 birds","Dawn chorus outing","Sketch the regulars"]},
+  {n:"Gardening",e:"🌻",b:"The slowest, most rewarding craft.",d:2,c:1,i:["Windowsill herb bar","Cut-flower patch","Propagation station","Container veggie trio"]},
+  {n:"Nature Journaling",e:"🍃",b:"Field notes + sketches + wonder.",d:1,c:1,i:["One-page-per-walk habit","Seasonal phenology wheel","Leaf rubbings collection","Cloud study spread"]}
+ ]}
+];
+const ALL_CRAFTS = CRAFT_CATALOG.reduce((n,c)=>n+c.crafts.length,0);
+const ALL_IDEAS = CRAFT_CATALOG.reduce((n,c)=>n+c.crafts.reduce((m,x)=>m+x.i.length,0),0);
+
+/* ---------- resource library ---------- */
+const RESOURCES = [
+ {cat:"Start Anywhere", emoji:"🌟", links:[
+  ["Instructables","https://www.instructables.com","Step-by-step DIY for literally everything"],
+  ["Skillshare","https://www.skillshare.com","Classes across every craft imaginable"],
+  ["Domestika","https://www.domestika.org","Beautiful, in-depth craft courses"],
+  ["r/crafts","https://www.reddit.com/r/crafts/","Show & tell + advice for all crafts"],
+  ["Pinterest","https://www.pinterest.com","Infinite inspiration boards"]]},
+ {cat:"Fiber & Yarn", emoji:"🧶", links:[
+  ["Ravelry","https://www.ravelry.com","THE pattern database for knit & crochet"],
+  ["VeryPink Knits","https://www.youtube.com/results?search_query=verypink+knits","Crystal-clear knitting technique videos"],
+  ["Bella Coco","https://www.youtube.com/results?search_query=bella+coco+crochet","Beginner-friendly crochet tutorials"],
+  ["LoveCrafts","https://www.lovecrafts.com","Yarn, kits, and free patterns"],
+  ["r/knitting","https://www.reddit.com/r/knitting/","Pattern help & finished-object joy"]]},
+ {cat:"Needle & Thread", emoji:"🪡", links:[
+  ["DMC","https://www.dmc.com","Free embroidery & cross-stitch patterns"],
+  ["Sublime Stitching","https://sublimestitching.com","Modern embroidery patterns & supplies"],
+  ["r/Embroidery","https://www.reddit.com/r/Embroidery/","Hoop inspiration & stitch help"],
+  ["Dharma Trading Co.","https://www.dharmatrading.com","Dyes and fiber-art supplies"]]},
+ {cat:"Paper", emoji:"📄", links:[
+  ["Origami.me","https://origami.me","Free origami diagrams by difficulty"],
+  ["Paper Kawaii","https://www.paperkawaii.com","Origami tutorials & printable paper"],
+  ["Sea Lemon","https://www.youtube.com/results?search_query=sea+lemon+bookbinding","DIY bookbinding video series"],
+  ["Jennifer McGuire Ink","https://www.jennifermcguireink.com","Card-making videos & techniques"]]},
+ {cat:"Paint, Draw & Letter", emoji:"🎨", links:[
+  ["The Virtual Instructor","https://thevirtualinstructor.com","Drawing & painting lessons"],
+  ["Ctrl+Paint","https://www.ctrlpaint.com","Free digital painting curriculum"],
+  ["The Mind of Watercolor","https://www.youtube.com/results?search_query=the+mind+of+watercolor","Relaxed, deep watercolor teaching"],
+  ["The Postman's Knock","https://thepostmansknock.com","Calligraphy & lettering worksheets"],
+  ["r/Watercolor","https://www.reddit.com/r/Watercolor/","Friendly feedback & inspiration"]]},
+ {cat:"Clay & Ceramics", emoji:"🏺", links:[
+  ["Sculpey","https://www.sculpey.com","Polymer clay how-tos & projects"],
+  ["Florian Gadsby","https://www.youtube.com/results?search_query=florian+gadsby","Mesmerizing pottery process videos"],
+  ["r/Pottery","https://www.reddit.com/r/Pottery/","Wheel & handbuilding community"]]},
+ {cat:"Candles, Soap & Resin", emoji:"🕯", links:[
+  ["CandleScience","https://www.candlescience.com","Candle-making guides & supplies"],
+  ["Bramble Berry","https://www.brambleberry.com","Soap-making recipes & kits"],
+  ["ArtResin","https://www.artresin.com","Resin how-tos and safety guides"]]},
+ {cat:"Jewelry", emoji:"💍", links:[
+  ["Fire Mountain Gems","https://www.firemountaingems.com","Beading tutorials & supplies"],
+  ["Beadaholique","https://www.youtube.com/results?search_query=beadaholique","Jewelry technique videos"],
+  ["Rio Grande","https://www.riogrande.com","Serious metalsmithing supplies"]]},
+ {cat:"Wood, Glass & Leather", emoji:"🪵", links:[
+  ["Woodworking for Mere Mortals","https://www.youtube.com/results?search_query=steve+ramsey+woodworking","Beginner-friendly woodworking"],
+  ["Ana White","https://www.ana-white.com","Free furniture plans"],
+  ["Delphi Glass","https://www.delphiglass.com","Stained glass supplies & classes"],
+  ["r/woodworking","https://www.reddit.com/r/woodworking/","Sawdust solidarity"]]},
+ {cat:"Kitchen Crafts", emoji:"🍰", links:[
+  ["King Arthur Baking","https://www.kingarthurbaking.com","Recipes & a full baking school"],
+  ["Sally's Baking Addiction","https://sallysbakingaddiction.com","Reliable, well-tested sweets"],
+  ["The Perfect Loaf","https://www.theperfectloaf.com","Sourdough deep dives"],
+  ["Preppy Kitchen","https://www.youtube.com/results?search_query=preppy+kitchen","Gorgeous bakes, calm energy"]]},
+ {cat:"Maker & Tech", emoji:"🖨", links:[
+  ["Printables","https://www.printables.com","Free 3D print models"],
+  ["Thingiverse","https://www.thingiverse.com","The classic 3D model library"],
+  ["Adafruit Learn","https://learn.adafruit.com","Electronics tutorials for all levels"],
+  ["Punished Props Academy","https://www.youtube.com/results?search_query=punished+props","Cosplay & prop-making school"]]},
+ {cat:"Buy Supplies", emoji:"🛍", links:[
+  ["Blick Art Materials","https://www.dickblick.com","Art supplies of every kind"],
+  ["Etsy","https://www.etsy.com","Indie patterns, kits & supplies"],
+  ["Michaels","https://www.michaels.com","Big-box craft everything"]]}
+];
 
 /* ---------- state ---------- */
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -520,9 +761,12 @@ function renderIdeas(){
     : `<div class="empty" style="grid-column:1/-1"><span class="big">💭</span>The inbox is empty. Your brain at 2am will fix that.</div>`;
 }
 $("sparkBtn").addEventListener("click",()=>{
-  if(!state.ideas.length) return toast("No ideas to spark — add some!");
-  const i=state.ideas[Math.floor(Math.random()*state.ideas.length)];
-  toast("✨ "+i.text.slice(0,80));
+  if(state.ideas.length && Math.random()<0.5){
+    const i=state.ideas[Math.floor(Math.random()*state.ideas.length)];
+    return toast("✨ From your inbox: "+i.text.slice(0,70));
+  }
+  const all=[]; CRAFT_CATALOG.forEach(c=>c.crafts.forEach(cr=>cr.i.forEach(t=>all.push(cr.e+" "+t))));
+  toast("✨ "+all[Math.floor(Math.random()*all.length)]);
 });
 
 /* ---------- dashboard ---------- */
@@ -603,8 +847,97 @@ $("importFile").addEventListener("change",e=>{
 $("ideaAddBtn").addEventListener("click",addIdea);
 $("ideaInput").addEventListener("keydown",e=>{ if(e.key==="Enter") addIdea(); });
 
+/* ---------- explore the craft universe ---------- */
+let expCat=-1, expQuery="";
+const craftAt=(ci,cj)=>CRAFT_CATALOG[ci].crafts[cj];
+const findHobbyByName=name=>state.hobbies.find(h=>h.name.toLowerCase()===name.toLowerCase());
+function ensureHobby(ci,cj){
+  const cr=craftAt(ci,cj);
+  let h=findHobbyByName(cr.n);
+  if(!h){ h={id:uid(),name:cr.n,emoji:cr.e,status:"active"}; state={...state,hobbies:[...state.hobbies,h]}; save(); }
+  return h;
+}
+function addCraftHobby(ci,cj){
+  const cr=craftAt(ci,cj), existed=!!findHobbyByName(cr.n);
+  ensureHobby(ci,cj);
+  renderHobbies(); renderExploreGrid(); renderCotd(); refreshStats();
+  toast(existed?"Already in your rotation!":`${cr.n} joined the rotation! 🎉`);
+}
+function saveCatalogIdea(ci,cj,k){
+  const cr=craftAt(ci,cj), h=findHobbyByName(cr.n);
+  state={...state,ideas:[{id:uid(),text:cr.i[k],hobbyId:h?h.id:null},...state.ideas]};
+  save(); renderIdeas(); refreshStats(); toast("Saved to your idea inbox 💡");
+}
+function startCatalogIdea(ci,cj,k){
+  const cr=craftAt(ci,cj), h=ensureHobby(ci,cj);
+  openProjectModal(null, cr.i[k], h.id);
+}
+function craftCard(ci,cj){
+  const cr=craftAt(ci,cj), inRot=!!findHobbyByName(cr.n);
+  const dots=n=>"●".repeat(n)+"<span>"+"●".repeat(3-n)+"</span>";
+  return `<div class="card craft-card"><div class="washi"></div>
+    <h3><span class="emoji">${cr.e}</span>${esc(cr.n)}</h3>
+    <p class="meta">${esc(cr.b)}</p>
+    <p class="meta" style="margin-top:8px">Difficulty <span class="dots">${dots(cr.d)}</span> &nbsp;·&nbsp; Startup <span class="cost">${"$".repeat(cr.c)}</span></p>
+    <div class="card-actions" style="margin-top:8px">
+      <button class="mini" onclick="addCraftHobby(${ci},${cj})">${inRot?"✓ In your rotation":"➕ Add to my hobbies"}</button>
+    </div>
+    <details><summary>💡 ${cr.i.length} project ideas</summary>
+      ${cr.i.map((t,k)=>`<div class="idea-line"><span>${esc(t)}</span>
+        <button class="mini" title="Save to idea inbox" onclick="saveCatalogIdea(${ci},${cj},${k})">💡</button>
+        <button class="mini" title="Start as a project" onclick="startCatalogIdea(${ci},${cj},${k})">🚀</button></div>`).join("")}
+    </details></div>`;
+}
+function renderExploreGrid(){
+  const q=expQuery.trim().toLowerCase();
+  const shown=[];
+  CRAFT_CATALOG.forEach((cat,ci)=>{
+    if(expCat!==-1&&expCat!==ci) return;
+    cat.crafts.forEach((cr,cj)=>{
+      if(q && !(cr.n+" "+cr.b+" "+cat.cat+" "+cr.i.join(" ")).toLowerCase().includes(q)) return;
+      shown.push([ci,cj]);
+    });
+  });
+  $("expGrid").innerHTML = shown.length ? shown.map(([ci,cj])=>craftCard(ci,cj)).join("")
+    : `<div class="empty" style="grid-column:1/-1"><span class="big">🔍</span>No crafts match — which means you may have invented a new one. Add it as a hobby!</div>`;
+}
+function renderExplore(){
+  $("expCount").textContent=`${ALL_CRAFTS} crafts · ${ALL_IDEAS} project ideas`;
+  const cats=[{cat:"All",emoji:"🗃"},...CRAFT_CATALOG];
+  $("expCats").innerHTML=cats.map((c,idx)=>{
+    const i=idx-1;
+    return `<button class="chip ${expCat===i?"on":""}" onclick="expCat=${i};renderExplore()">${c.emoji} ${esc(c.cat)}</button>`;
+  }).join("");
+  renderExploreGrid();
+}
+
+/* ---------- resources ---------- */
+function renderResources(){
+  $("rscWrap").innerHTML=RESOURCES.map(g=>`<div class="card"><div class="washi"></div>
+    <h3><span class="emoji">${g.emoji}</span>${esc(g.cat)}</h3>
+    ${g.links.map(l=>`<div class="rsc-item"><a href="${l[1]}" target="_blank" rel="noopener">${esc(l[0])} ↗</a><br><span class="meta">${esc(l[2])}</span></div>`).join("")}
+  </div>`).join("");
+}
+
+/* ---------- craft of the day ---------- */
+function renderCotd(){
+  const all=[]; CRAFT_CATALOG.forEach((c,ci)=>c.crafts.forEach((cr,cj)=>all.push([ci,cj])));
+  const day=Math.floor(Date.now()/86400000);
+  const [ci,cj]=all[day%all.length], cr=craftAt(ci,cj), k=day%cr.i.length;
+  const inRot=!!findHobbyByName(cr.n);
+  $("cotd").innerHTML=`<h3 style="font-size:1.2rem"><span style="font-size:1.5rem">${cr.e}</span> ${esc(cr.n)}</h3>
+    <p class="meta" style="margin:6px 0 8px">${esc(cr.b)}</p>
+    <p class="meta">Try: “${esc(cr.i[k])}”</p>
+    <div class="card-actions">
+      <button class="mini" onclick="addCraftHobby(${ci},${cj})">${inRot?"✓ In rotation":"➕ Add to rotation"}</button>
+      <button class="mini" onclick="startCatalogIdea(${ci},${cj},${k})">🚀 Start it</button>
+    </div>`;
+}
+
 /* ---------- render root ---------- */
-function render(){ renderDash(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); }
+function render(){ renderDash(); renderCotd(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); renderExplore(); }
+$("expSearch").addEventListener("input",e=>{ expQuery=e.target.value; renderExploreGrid(); });
+renderResources();
 save(); render();
 </script>
 </body>
