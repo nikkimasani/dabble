@@ -161,7 +161,7 @@
 
 <nav id="nav">
   <button data-v="dash" class="on">🏡 Dashboard</button>
-  <button data-v="make">🪄 Make with my stash</button>
+  <button data-v="make">🪄 Make & guides</button>
   <button data-v="today">☀️ Today</button>
   <button data-v="explore">🧭 Explore</button>
   <button data-v="hobbies">🎨 Hobbies</button>
@@ -211,6 +211,7 @@
       <h2>What can I make with what I already have?</h2>
       <p>Dabble checks your stash against a 100+ project guide encyclopedia, then gives you a complete plan you can launch right away.</p>
       <div class="card-actions"><button class="btn btn-t" onclick="openStashModal()">Add what I have</button><button class="btn btn-ghost" onclick="document.querySelector('[data-v=stash]').click()">View my stash</button></div>
+      <div class="card-actions" style="margin-top:16px"><button class="mini" onclick="openVisualWalkthrough('g-0-0-0')">🧶 Try the pictured beanie walkthrough</button><button class="mini" onclick="openVisualWalkthrough('g-0-1-1')">🪝 Try the pictured tote walkthrough</button><button class="mini" onclick="openVisualWalkthrough('g-1-0-0')">🪡 Try the pictured embroidery walkthrough</button></div>
     </div>
     <div class="make-grid">
       <div class="panel"><h3>Your match settings</h3><label>Search the guide encyclopedia</label><input id="guideSearch" type="search" placeholder="e.g. cozy, gift, beginner, yarn"><label>Time available</label><select id="guideTime"><option value="any">Any amount of time</option><option value="quick">15–30 minutes</option><option value="steady">About an hour</option><option value="deep">A longer craft session</option></select><label>Show</label><select id="guideReadiness"><option value="all">All ideas</option><option value="ready">Only ready-to-make ideas</option><option value="close">Almost ready — one or two supplies away</option></select><p class="details-note" id="stashSummary"></p></div>
@@ -649,6 +650,7 @@ const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;"
 const hobbyById = id => state.hobbies.find(h=>h.id===id);
 const hobbyLabel = id => { const h=hobbyById(id); return h ? `${h.emoji} ${esc(h.name)}` : "🗂 Unsorted"; };
 const daysAgo = ts => { if(!ts) return ""; const d=Math.floor((Date.now()-ts)/86400000); return d===0?"today":d===1?"yesterday":`${d}d ago`; };
+const supplyCountLabel = count => count===1 ? "1 supply to get" : `${count} supplies to get`;
 const projectMaterials = p => (p.materials||"").split(/\n|,/).map(x=>x.trim()).filter(Boolean);
 function projectSupplyCheck(p){
   const needs=projectMaterials(p); if(!needs.length) return {needs:[],missing:[]};
@@ -698,7 +700,7 @@ function openModal(title, bodyHTML, onSubmit){
     <button class="btn btn-ghost" type="button" onclick="modal.close()">Cancel</button>
     <button class="btn btn-t" id="modalSave" type="button">Save</button></div>`;
   $("modalSave").onclick=async()=>{ if(await onSubmit()!==false){ modal.close(); save(); render(); } };
-  modal.showModal();
+  if(!modal.open) modal.showModal();
   const first=$("modalBody").querySelector("input,select,textarea"); if(first) first.focus();
 }
 const hobbyOptions = sel => state.hobbies.map(h=>`<option value="${h.id}" ${h.id===sel?"selected":""}>${h.emoji} ${esc(h.name)}</option>`).join("");
@@ -797,6 +799,15 @@ function deleteProject(id){
   const p=state.projects.find(x=>x.id===id); if(!p||!confirm(`Delete "${p.name}" forever?`)) return;
   state={...state, projects: state.projects.filter(x=>x.id!==id)}; save(); render(); toast("Project deleted");
 }
+function openProjectWorkspace(id){
+  const p=state.projects.find(x=>x.id===id); if(!p) return;
+  const supplies=projectSupplyCheck(p), guide=p.guideId?guideById(p.guideId):GUIDE_LIBRARY.find(g=>g.title===p.name);
+  const guideAction=guide ? `<button class="btn btn-s" type="button" onclick="openGuide('${guide.id}')">Open guide</button>` : "";
+  const startAction=p.status!=="inprogress"&&p.status!=="finished" ? `<button class="btn btn-t" type="button" onclick="quickStatus('${p.id}','inprogress');modal.close()">Start this project</button>` : "";
+  $("modalTitle").textContent=`${p.name} · project workspace`;
+  $("modalBody").innerHTML=`<p class="meta">${hobbyLabel(p.hobbyId)} · ${PROJ_STATUS[p.status]?.label||"Idea"} · ${p.progress||0}% complete</p><div class="bar"><i style="width:${p.progress||0}%"></i></div><h3 style="margin-top:18px">Your next step</h3><p class="walk-copy">${esc(p.nextStep||"Choose one small action, then add it here so Dabble can guide you next time.")}</p><h3 style="margin-top:18px">Materials</h3>${supplies.needs.length?`<ul class="supply-list">${supplies.needs.map(n=>`<li class="${supplies.missing.includes(n)?"missing":"ready"}">${supplies.missing.includes(n)?"To get: ":"In your stash: "}${esc(n)}</li>`).join("")}</ul>`:`<p class="details-note">No materials listed yet. Add them in Edit project to get a readiness check.</p>`}${p.notes?`<h3 style="margin-top:18px">Notes</h3><p class="details-note">${esc(p.notes)}</p>`:""}<div class="modal-foot"><button class="btn btn-ghost" type="button" onclick="modal.close()">Close</button><button class="btn btn-ghost" type="button" onclick="openProjectModal('${p.id}')">Edit project</button>${guideAction}${startAction}</div>`;
+  if(!modal.open) modal.showModal();
+}
 function projCard(p){
   const st=PROJ_STATUS[p.status]||PROJ_STATUS.idea;
   const supplies=projectSupplyCheck(p);
@@ -809,12 +820,12 @@ function projCard(p){
     <h3>${esc(p.name)}</h3>
     <p class="meta">${hobbyLabel(p.hobbyId)} · touched ${daysAgo(p.updated)}</p>
     <span class="pill ${st.cls}" style="margin-top:8px;display:inline-block">${st.label}</span>
-    <div class="project-facts"><span class="fact">${p.time==="deep"?"2+ hours":p.time==="steady"?"~1 hour":"15–30 min"}</span><span class="fact">${p.energy||"medium"} energy</span>${supplies.needs.length?`<span class="fact ${supplies.missing.length?"missing":"ready"}">${supplies.missing.length?`${supplies.missing.length} supply to get`:"supplies ready"}</span>`:""}</div>
+    <div class="project-facts"><span class="fact">${p.time==="deep"?"2+ hours":p.time==="steady"?"~1 hour":"15–30 min"}</span><span class="fact">${p.energy||"medium"} energy</span>${supplies.needs.length?`<span class="fact ${supplies.missing.length?"missing":"ready"}">${supplies.missing.length?supplyCountLabel(supplies.missing.length):"supplies ready"}</span>`:""}</div>
     <div class="bar"><i id="bar-${p.id}" style="width:${p.progress}%"></i></div>
     <input type="range" min="0" max="100" value="${p.progress}" onchange="setProgress('${p.id}',this.value)" aria-label="progress">
     ${p.notes?`<p class="meta" style="margin-top:8px">📝 ${esc(p.notes)}</p>`:""}
     ${p.nextStep?`<p class="details-note"><strong>Next:</strong> ${esc(p.nextStep)}</p>`:""}
-    <div class="card-actions">${quick}
+    <div class="card-actions"><button class="btn btn-t" onclick="openProjectWorkspace('${p.id}')">Open project</button>${quick}
       <button class="mini" onclick="openProjectModal('${p.id}')">✏️</button>
       <button class="mini" onclick="deleteProject('${p.id}')">🗑</button>
     </div></div>`;
@@ -987,13 +998,13 @@ function openVisualWalkthrough(id,step=0){
 }
 function launchGuide(id){
   const g=guideById(id); if(!g) return false; const [ci,cj]=g.seed, h=ensureHobby(ci,cj), materials=guideNeeds(g).join("\n");
-  state={...state,projects:[...state.projects,{id:uid(),name:g.title,hobbyId:h.id,status:"idea",progress:0,nextStep:guideSteps(g)[0],time:g.difficulty===1?"quick":"steady",energy:g.difficulty===3?"high":"medium",materials,notes:`Started from the ${g.craft} guide encyclopedia.`,updated:Date.now()}]};
+  state={...state,projects:[...state.projects,{id:uid(),name:g.title,hobbyId:h.id,guideId:g.id,status:"idea",progress:0,nextStep:guideSteps(g)[0],time:g.difficulty===1?"quick":"steady",energy:g.difficulty===3?"high":"medium",materials,notes:`Started from the ${g.craft} guide encyclopedia.`,updated:Date.now()}]};
   toast("Project plan added — it’s ready when you are ✨"); return true;
 }
 function guideCard(g){
   const match=guideMatch(g), time=g.difficulty===1?"15–30 min":"~1 hour";
   const visual=VISUAL_GUIDES[g.title];
-  return `<div class="card guide-card"><div class="washi"></div><div class="guide-visual">${visual?`<img src="${visual.image}" alt="Visual tutorial preview for ${esc(g.title)}">`:g.emoji}</div><h3>${esc(g.title)}</h3><p class="meta">${esc(g.craft)} · ${time}</p><div class="project-facts"><span class="fact">${match.matched.length}/${match.needs.length} supplies matched</span><span class="fact ${match.missing.length?"missing":"ready"}">${match.missing.length?`${match.missing.length} to find`:"ready to make"}</span>${visual?`<span class="fact ready">visual guide</span>`:""}</div><p class="details-note">${esc(g.blurb)}</p><div class="card-actions"><button class="mini" onclick="openGuide('${g.id}')">${visual?"Open visual guide":"Open step-by-step guide"}</button></div></div>`;
+  return `<div class="card guide-card"><div class="washi"></div><div class="guide-visual">${visual?`<img src="${visual.image}" alt="Visual tutorial preview for ${esc(g.title)}">`:g.emoji}</div><h3>${esc(g.title)}</h3><p class="meta">${esc(g.craft)} · ${time}</p><div class="project-facts"><span class="fact">${match.matched.length}/${match.needs.length} supplies matched</span><span class="fact ${match.missing.length?"missing":"ready"}">${match.missing.length?`${match.missing.length} ${match.missing.length===1?"supply":"supplies"} to find`:"ready to make"}</span>${visual?`<span class="fact ready">visual guide</span>`:""}</div><p class="details-note">${esc(g.blurb)}</p><div class="card-actions"><button class="mini" onclick="openGuide('${g.id}')">${visual?"Open visual guide":"Open step-by-step guide"}</button></div></div>`;
 }
 function renderGuides(){
   const q=guideQuery.trim().toLowerCase();
