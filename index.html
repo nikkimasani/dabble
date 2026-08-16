@@ -160,20 +160,17 @@
 </header>
 
 <nav id="nav">
-  <button data-v="dash" class="on">🏡 Dashboard</button>
-  <button data-v="make">🪄 Make & guides</button>
-  <button data-v="today">☀️ Today</button>
-  <button data-v="explore">🧭 Explore</button>
-  <button data-v="hobbies">🎨 Hobbies</button>
-  <button data-v="projects">🧶 Projects</button>
-  <button data-v="stash">📦 Stash</button>
-  <button data-v="ideas">💡 Ideas</button>
-  <button data-v="resources">📚 Resources</button>
+  <button data-v="dash" class="on">🏡 Home</button>
+  <button data-v="make">🪄 Illustrated tutorials</button>
+  <button data-v="projects">🧶 My projects</button>
+  <button data-v="stash">📦 My supplies</button>
+  <button data-v="explore">🧭 Inspiration & learning</button>
 </nav>
 
 <main>
   <section id="v-dash" class="on">
     <div id="onboarding"></div>
+    <div class="make-intro"><span class="tape">start here</span><h2>Make something real, without guessing.</h2><p>Choose one pictured tutorial, add the supplies you have, then follow a clear project plan. The rest of Dabble is there to support that work—not distract from it.</p><div class="card-actions"><button class="btn btn-t" onclick="document.querySelector('[data-v=make]').click()">Browse illustrated tutorials</button><button class="btn btn-ghost" onclick="openStashModal()">Add my supplies</button></div><div class="grid" id="homeTutorialGrid" style="margin-top:18px"></div></div>
     <div class="stats" id="statGrid"></div>
     <div class="dash-grid">
       <div>
@@ -207,15 +204,15 @@
   </section>
   <section id="v-make">
     <div class="make-intro">
-      <span class="tape">your supplies, your next make</span>
-      <h2>What can I make with what I already have?</h2>
-      <p>Dabble checks your stash against a 100+ project guide encyclopedia, then gives you a complete plan you can launch right away.</p>
+      <span class="tape">pictured, detailed, practical</span>
+      <h2>Illustrated tutorials</h2>
+      <p>These are the projects with a real visual walkthrough and a craft-specific recipe. Add your supplies first to see what is already ready to begin.</p>
       <div class="card-actions"><button class="btn btn-t" onclick="openStashModal()">Add what I have</button><button class="btn btn-ghost" onclick="document.querySelector('[data-v=stash]').click()">View my stash</button></div>
-      <div class="card-actions" style="margin-top:16px"><button class="mini" onclick="openVisualWalkthrough('g-0-0-0')">🧶 Try the pictured beanie walkthrough</button><button class="mini" onclick="openVisualWalkthrough('g-0-1-1')">🪝 Try the pictured tote walkthrough</button><button class="mini" onclick="openVisualWalkthrough('g-1-0-0')">🪡 Try the pictured embroidery walkthrough</button></div>
+      <div class="grid" id="tutorialGrid" style="margin-top:18px"></div>
     </div>
     <div class="make-grid">
-      <div class="panel"><h3>Your match settings</h3><label>Search the guide encyclopedia</label><input id="guideSearch" type="search" placeholder="e.g. cozy, gift, beginner, yarn"><label>Time available</label><select id="guideTime"><option value="any">Any amount of time</option><option value="quick">15–30 minutes</option><option value="steady">About an hour</option><option value="deep">A longer craft session</option></select><label>Show</label><select id="guideReadiness"><option value="all">All ideas</option><option value="ready">Only ready-to-make ideas</option><option value="close">Almost ready — one or two supplies away</option></select><p class="details-note" id="stashSummary"></p></div>
-      <div><div class="row"><h2>Guide encyclopedia</h2><span class="meta" id="guideCount"></span></div><div class="grid" id="guideGrid"></div></div>
+      <div class="panel"><h3>Find an inspiration prompt</h3><p class="details-note">These are ideas, not detailed tutorials yet. Use them to spark a project, then add your own notes and materials.</p><label>Search ideas</label><input id="guideSearch" type="search" placeholder="e.g. cozy, gift, beginner, yarn"><label>Time available</label><select id="guideTime"><option value="any">Any amount of time</option><option value="quick">15–30 minutes</option><option value="steady">About an hour</option><option value="deep">A longer craft session</option></select><label>Show</label><select id="guideReadiness"><option value="all">All ideas</option><option value="ready">Only ideas matched to my supplies</option><option value="close">Ideas missing one or two supplies</option></select><p class="details-note" id="stashSummary"></p></div>
+      <div><div class="row"><h2>Inspiration prompts</h2><span class="meta" id="guideCount"></span></div><div class="grid" id="guideGrid"></div></div>
     </div>
   </section>
   <section id="v-today">
@@ -524,29 +521,29 @@ const MATERIAL_PROFILES = {
   "Kitchen Crafts":["flour","sugar","butter","baking","yeast","jar"], "Maker & Tech":["filament","wire","battery","arduino","vinyl","printer"]
 };
 const VISUAL_GUIDES = {
-  "Chunky ribbed beanie": {image:"assets/guides/chunky-ribbed-beanie.png",steps:[
-    "Choose a chunky yarn and matching large needles. Make a small 10-stitch test swatch; it should feel springy without large gaps.",
-    "Cast on an even number of stitches loosely enough to stretch over your head. Join carefully for knitting in the round, checking that the stitches are not twisted.",
-    "Work knit-one, purl-one ribbing for the folded cuff. Keep your first few rows relaxed; tight ribbing is difficult to pull over the head.",
-    "Change to plain knit stitch and continue until the tube reaches just above your ears. Measure from the cast-on edge rather than guessing.",
-    "Decrease evenly around the crown, placing markers between decrease sections. Pull the remaining live stitches closed only when the crown is small and even.",
-    "Weave in both ends on the inside, fold the cuff, and try it on. Steam lightly if the fabric needs to relax—do not flatten the ribbing." ]},
-  "Market tote from cotton yarn": {image:"assets/guides/cotton-market-tote.png",steps:[
-    "Use sturdy cotton yarn and a hook that creates a firm fabric. Make a small circle or rectangle test so the bag will not stretch too much with groceries.",
-    "Chain the foundation loosely, then work a compact base in single crochet. Count both long sides every round so the base remains symmetrical.",
-    "Build the base until it is as wide as the bag you want. Lay it flat; if it ripples, add fewer increases, and if it cups, add a few more.",
-    "Work upward in an open mesh stitch only after the base lies flat. Keep the first mesh row even because it determines the shape of the entire tote.",
-    "Crochet two handles of equal length and reinforce where they meet the bag with extra rows of single crochet. Test each handle by gently pulling it.",
-    "Weave in every end securely. Place a few light items inside first, then check that the handles and mesh expand evenly before using it for groceries." ]},
-  "Botanical hoop sampler": {image:"assets/guides/botanical-hoop-sampler.png",steps:[
-    "Stretch smooth cotton or linen tightly in a hoop and trace a simple leaf-and-flower outline with a removable fabric pen.",
-    "Separate the embroidery floss if needed, thread the needle, and knot the tail. Start from the back so the knot will be hidden inside the hoop.",
-    "Stitch the stems with a backstitch: take small, even stitches and bring each new stitch back into the end of the previous one.",
-    "Fill leaves with satin stitch, placing each stitch close beside the last and following the leaf’s direction so the shape stays smooth.",
-    "Add small petals or French knots for flowers. Work one color area at a time, carrying floss only short distances behind the fabric.",
-    "Secure the thread with small back stitches on the reverse, trim the excess, then press the finished hoop from the back with a cloth between iron and stitches." ]}
+  "Chunky ribbed beanie": {image:"assets/guides/chunky-ribbed-beanie.png",needs:["100 g super-bulky yarn","10 mm circular needles","tapestry needle","stitch marker","scissors"],steps:[
+    "Gather 100 g of super-bulky yarn, 10 mm circular needles (16 in / 40 cm), a stitch marker, scissors, and a tapestry needle. Cast on 44 stitches loosely. Slide the stitches around the cable once before joining: the cast-on edge must not twist.",
+    "Place the marker to show the beginning of the round. Work *knit 1, purl 1* around all 44 stitches. Repeat this rib round until the cuff measures 4 in / 10 cm from the cast-on edge. If the ribbing is hard to stretch, restart with a looser cast-on.",
+    "Knit every stitch for the body of the hat. Continue until the hat measures 8 in / 20 cm from the cast-on edge, including the cuff. Try it on once; the tube should reach about 1 in / 2.5 cm above your ears before shaping the crown.",
+    "Decrease round 1: repeat *knit 2, knit 2 together* around the round. You will have 33 stitches. Knit one plain round. Decrease round 2: repeat *knit 1, knit 2 together* around; 22 stitches remain. Knit one plain round.",
+    "Decrease round 3: knit 2 together all the way around; 11 stitches remain. Cut the yarn, leaving an 8 in / 20 cm tail. Thread the tail through the tapestry needle, pass it through all 11 live stitches, pull firmly, then take the needle through the center once more.",
+    "Weave the tail through the inside of the crown for 2–3 in / 5–8 cm and trim it. Weave in the cast-on tail the same way. Fold up the 4 in cuff, try on the beanie, and lightly steam it from a distance if the stitches need to relax." ]},
+  "Market tote from cotton yarn": {image:"assets/guides/cotton-market-tote.png",needs:["200 g worsted cotton yarn","4.5 mm crochet hook","tapestry needle","stitch markers","scissors"],steps:[
+    "Use 200 g worsted cotton yarn with a 4.5 mm hook. Chain 31. Row 1: single crochet in the second chain from the hook and in every chain across (30 stitches); chain 1 and turn. Keep the turning chain loose—it does not count as a stitch.",
+    "Rows 2–20: single crochet in each of the 30 stitches, chain 1 and turn. Count the first and last stitch of every row; accidentally skipping either edge will make the panel taper. Make a second identical 30-by-20 panel for the back of the tote.",
+    "Place the two panels with right sides facing out. Starting at the top-left corner, single crochet through both layers down one side, across the bottom, and up the other side. Do not crochet across the top. Turn the bag right-side out if you prefer the seam inside.",
+    "For the first handle, join yarn 6 stitches in from one top corner. Chain 70, skip 18 top stitches, and single crochet into the next stitch. Single crochet back along the chain to make the handle sturdy. Repeat on the opposite side with the same stitch count.",
+    "Reinforce each handle base: single crochet 3 extra rows across the 6 stitches on either side of the join. The handle should sit flat and feel secure when gently pulled. Repeat this reinforcement on all four handle joins.",
+    "Weave each yarn end through at least 2 in / 5 cm of nearby stitches, changing direction once before trimming. Test the tote with a few light items first; cotton stretches, so reserve heavier grocery loads until you know how much it expands." ]},
+  "Botanical hoop sampler": {image:"assets/guides/botanical-hoop-sampler.png",needs:["6 in embroidery hoop","cotton or linen","green and rust embroidery floss","embroidery needle","fabric pen","scissors"],steps:[
+    "Cut a 9 in / 23 cm square of cotton or linen. Place it over a 6 in hoop, tighten the screw, and pull the fabric evenly from all sides until it feels drum-tight. Trace one simple stem with 3 leaves and 3 small flowers using a removable fabric pen.",
+    "Cut an 18 in / 45 cm length of green floss. Separate it into 2 strands, thread both through an embroidery needle, and knot the end. Bring the needle up at the start of the stem. For backstitch, take a 1/8 in / 3 mm stitch forward, then bring the needle up one stitch length ahead and return it into the previous hole.",
+    "Continue the backstitch along the entire stem. Keep each stitch the same length. At a leaf, end the stem stitch exactly at the leaf base so the leaf stitches can cover the join cleanly.",
+    "For each leaf, use satin stitch: bring the needle up at one edge, go straight across to the opposite edge, and repeat beside the last stitch. Start at the pointed tip and work toward the base so the stitches follow the leaf shape. Do not pull so tightly that the fabric puckers.",
+    "Switch to rust floss for the flowers. Make 5 detached-chain petals around a center, or make 3 French knots: wrap floss once around the needle, hold the wrap gently, and take the needle back down one thread-width from where it came up. Keep the hoop stable while pulling through.",
+    "On the reverse, slide the needle under 3 nearby stitches, make a tiny knot, then slide under 2 more stitches before trimming. Remove any pen marks following its instructions. Press from the back through a pressing cloth, then center the fabric in the hoop and trim the excess fabric to 1 in / 2.5 cm." ]}
 };
-function guideNeeds(guide){ return MATERIAL_PROFILES[guide.category]||["basic supplies","scissors","adhesive"]; }
+function guideNeeds(guide){ return VISUAL_GUIDES[guide.title]?.needs||MATERIAL_PROFILES[guide.category]||["basic supplies","scissors","adhesive"]; }
 function guideMatch(guide){
   const needs=guideNeeds(guide), owned=state.stash.filter(s=>s.qty>0).map(s=>`${s.name} ${s.note||""} ${s.unit||""}`.toLowerCase());
   const matched=needs.filter(need=>owned.some(item=>item.includes(need))); return {needs,matched,missing:needs.filter(n=>!matched.includes(n)),score:matched.length/needs.length};
@@ -984,10 +981,22 @@ function renderToday(){
 /* ---------- make with my stash + guide encyclopedia ---------- */
 let guideQuery="", guideTime="any", guideReadiness="all";
 const guideById=id=>GUIDE_LIBRARY.find(g=>g.id===id);
+function tutorialCard(g){
+  const visual=VISUAL_GUIDES[g.title], match=guideMatch(g);
+  return `<div class="card guide-card"><img src="${visual.image}" alt="Six visual stages for ${esc(g.title)}" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:10px;margin:8px 0 12px"><h3>${esc(g.title)}</h3><p class="meta">Illustrated tutorial · ${visual.steps.length} detailed steps</p><div class="project-facts"><span class="fact">${match.matched.length}/${match.needs.length} supplies matched</span><span class="fact ${match.missing.length?"missing":"ready"}">${match.missing.length?supplyCountLabel(match.missing.length):"supplies ready"}</span></div><div class="card-actions"><button class="btn btn-t" onclick="openVisualWalkthrough('${g.id}')">Start tutorial</button><button class="mini" onclick="openGuide('${g.id}')">View materials</button></div></div>`;
+}
+function renderTutorials(){
+  const tutorials=GUIDE_LIBRARY.filter(g=>VISUAL_GUIDES[g.title]);
+  [$("tutorialGrid"),$("homeTutorialGrid")].forEach(el=>{ if(el) el.innerHTML=tutorials.map(tutorialCard).join(""); });
+}
 function openGuide(id){
   const g=guideById(id); if(!g) return; const match=guideMatch(g), steps=guideSteps(g);
   const visual=VISUAL_GUIDES[g.title];
-  openModal(`${g.emoji} ${g.title}`,`${visual?`<img class="guide-visual-large" style="width:100%;padding:0;object-fit:cover" src="${visual.image}" alt="Six visual stages for ${esc(g.title)}">`: `<div class="guide-visual-large">${g.emoji}</div>`}<p class="meta">${esc(g.craft)} · ${esc(g.category)} · ${g.difficulty===1?"Beginner":g.difficulty===2?"Comfortable beginner":"Confident maker"}</p><p style="margin-top:12px">${esc(g.blurb)}</p><h3 style="margin-top:18px">What you’ll use</h3><ul class="supply-list">${match.needs.map(n=>`<li class="${match.missing.includes(n)?"missing":"ready"}">${match.missing.includes(n)?"Need: ":"In your stash: "}${esc(n)}</li>`).join("")}</ul><h3>Step-by-step plan</h3><ol class="guide-steps">${steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>${visual?`<button class="btn btn-s" type="button" onclick="openVisualWalkthrough('${g.id}')">Start visual walkthrough</button>`:`<p class="details-note">Illustrated walkthroughs are being added to the guide library. This plan is ready to launch now.</p>`}`,()=>{ launchGuide(id); });
+  const supplies=`<h3 style="margin-top:18px">${visual?"Materials":"A starting supply checklist"}</h3><ul class="supply-list">${match.needs.map(n=>`<li class="${match.missing.includes(n)?"missing":"ready"}">${match.missing.includes(n)?"Need: ":"In your stash: "}${esc(n)}</li>`).join("")}</ul>`;
+  const content=visual
+    ? `<img class="guide-visual-large" style="width:100%;padding:0;object-fit:cover" src="${visual.image}" alt="Six visual stages for ${esc(g.title)}"><p class="meta">Illustrated tutorial · ${steps.length} detailed steps</p>${supplies}<h3>Written instructions</h3><ol class="guide-steps">${steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol><button class="btn btn-s" type="button" onclick="openVisualWalkthrough('${g.id}')">Start visual walkthrough</button>`
+    : `<div class="guide-visual-large">${g.emoji}</div><p class="meta">Inspiration prompt · ${esc(g.craft)}</p><p style="margin-top:12px">${esc(g.blurb)}</p>${supplies}<p class="details-note">This is an idea to adapt to your own technique and materials—not a complete tutorial. Add it as a project when you want to plan it.</p>`;
+  openModal(`${g.emoji} ${g.title}`,content,()=>{ launchGuide(id); });
 }
 function openVisualWalkthrough(id,step=0){
   const g=guideById(id), visual=g&&VISUAL_GUIDES[g.title]; if(!g||!visual) return;
@@ -1004,7 +1013,7 @@ function launchGuide(id){
 function guideCard(g){
   const match=guideMatch(g), time=g.difficulty===1?"15–30 min":"~1 hour";
   const visual=VISUAL_GUIDES[g.title];
-  return `<div class="card guide-card"><div class="washi"></div><div class="guide-visual">${visual?`<img src="${visual.image}" alt="Visual tutorial preview for ${esc(g.title)}">`:g.emoji}</div><h3>${esc(g.title)}</h3><p class="meta">${esc(g.craft)} · ${time}</p><div class="project-facts"><span class="fact">${match.matched.length}/${match.needs.length} supplies matched</span><span class="fact ${match.missing.length?"missing":"ready"}">${match.missing.length?`${match.missing.length} ${match.missing.length===1?"supply":"supplies"} to find`:"ready to make"}</span>${visual?`<span class="fact ready">visual guide</span>`:""}</div><p class="details-note">${esc(g.blurb)}</p><div class="card-actions"><button class="mini" onclick="openGuide('${g.id}')">${visual?"Open visual guide":"Open step-by-step guide"}</button></div></div>`;
+  return `<div class="card guide-card"><div class="washi"></div><div class="guide-visual">${visual?`<img src="${visual.image}" alt="Visual tutorial preview for ${esc(g.title)}">`:g.emoji}</div><h3>${esc(g.title)}</h3><p class="meta">${visual?"Illustrated tutorial":`Inspiration prompt · ${esc(g.craft)}`}</p><div class="project-facts"><span class="fact">${match.matched.length}/${match.needs.length} supplies matched</span><span class="fact ${match.missing.length?"missing":"ready"}">${match.missing.length?`${match.missing.length} ${match.missing.length===1?"supply":"supplies"} to find`:"ready to make"}</span>${visual?`<span class="fact ready">visual guide</span>`:""}</div><p class="details-note">${esc(g.blurb)}</p><div class="card-actions"><button class="mini" onclick="openGuide('${g.id}')">${visual?"Open illustrated tutorial":"View idea"}</button></div></div>`;
 }
 function renderGuides(){
   const q=guideQuery.trim().toLowerCase();
@@ -1166,7 +1175,7 @@ function renderCotd(){
 }
 
 /* ---------- render root ---------- */
-function render(){ renderDash(); renderToday(); renderGuides(); renderCotd(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); renderExplore(); }
+function render(){ renderDash(); renderTutorials(); renderToday(); renderGuides(); renderCotd(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); renderExplore(); }
 $("projectSearch").addEventListener("input",e=>{ projectQuery=e.target.value.trim().toLowerCase(); renderProjects(); });
 $("projectSort").addEventListener("change",e=>{ projectSort=e.target.value; renderProjects(); });
 $("stashSearch").addEventListener("input",e=>{ stashQuery=e.target.value.trim().toLowerCase(); renderStash(); });
