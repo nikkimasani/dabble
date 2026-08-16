@@ -123,14 +123,15 @@
   .onboarding{max-width:710px;margin:30px auto;text-align:center;padding:42px 24px}.onboarding h2{font-size:2rem;margin-bottom:8px}.onboarding p{max-width:530px;margin:0 auto 18px;line-height:1.5}
   .details-note{font-size:.82rem;line-height:1.4;color:var(--ink-soft);margin-top:8px}.ready{color:var(--sage-dk);font-weight:700}.missing{color:var(--terracotta);font-weight:700}
   .make-intro{background:linear-gradient(135deg,#f6eee0,#e8f0df);border:1.5px solid var(--line);border-radius:var(--r);padding:24px;margin-bottom:18px;box-shadow:var(--shadow)}.make-intro h2{font-size:1.8rem}.make-intro p{max-width:680px;line-height:1.5;margin-top:7px}.make-grid{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.6fr);gap:18px}@media(max-width:760px){.make-grid{grid-template-columns:1fr}}
-  .guide-card .guide-visual{height:92px;border-radius:10px;background:linear-gradient(135deg,#f2d7b6,#d9e5c8);display:flex;align-items:center;justify-content:center;font-size:3rem;margin:8px 0 12px}.guide-card .card-actions{border-top:1px dashed var(--line);padding-top:9px}.guide-steps{counter-reset:step;margin:14px 0}.guide-steps li{list-style:none;counter-increment:step;position:relative;padding:0 0 13px 38px;line-height:1.48}.guide-steps li::before{content:counter(step);position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:var(--terracotta);color:#fff;font-size:.76rem;font-weight:800}.guide-visual-large{padding:26px;border-radius:14px;background:linear-gradient(135deg,#f4ddbd,#dbe7ce);font-size:4rem;text-align:center;margin:12px 0}.supply-list{margin:10px 0;padding-left:18px;line-height:1.65}.make-count{font-weight:700;color:var(--sage-dk)}
+  .guide-card .guide-visual{height:92px;border-radius:10px;background:linear-gradient(135deg,#f2d7b6,#d9e5c8);display:flex;align-items:center;justify-content:center;font-size:3rem;margin:8px 0 12px;overflow:hidden}.guide-card .guide-visual img{width:100%;height:100%;object-fit:cover}.guide-card .card-actions{border-top:1px dashed var(--line);padding-top:9px}.guide-steps{counter-reset:step;margin:14px 0}.guide-steps li{list-style:none;counter-increment:step;position:relative;padding:0 0 13px 38px;line-height:1.48}.guide-steps li::before{content:counter(step);position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:var(--terracotta);color:#fff;font-size:.76rem;font-weight:800}.guide-visual-large{padding:26px;border-radius:14px;background:linear-gradient(135deg,#f4ddbd,#dbe7ce);font-size:4rem;text-align:center;margin:12px 0}.supply-list{margin:10px 0;padding-left:18px;line-height:1.65}.make-count{font-weight:700;color:var(--sage-dk)}
+  .visual-walkthrough{max-width:720px}.step-crop{width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:13px;background:var(--paper-2);position:relative;border:1px solid var(--line)}.step-crop img{position:absolute;width:300%;height:200%;max-width:none;object-fit:fill;transition:transform .25s ease}.walk-step{font-size:.78rem;font-weight:800;color:var(--terracotta);letter-spacing:.08em;text-transform:uppercase;margin:15px 0 6px}.walk-copy{font-size:1.03rem;line-height:1.55;min-height:75px}.walk-actions{display:flex;justify-content:space-between;gap:10px;margin-top:16px}.walk-actions .btn{min-width:102px}
   .rsc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
   .rsc-grid .card:hover{transform:none}
   .rsc-item{padding:8px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
   .rsc-item a{color:var(--terracotta);font-weight:700;text-decoration:none}
   .rsc-item a:hover{text-decoration:underline}
 
-  dialog{border:none;border-radius:18px;padding:0;max-width:440px;width:92vw;box-shadow:0 30px 60px -20px rgba(59,47,38,.5);background:var(--card)}
+  dialog{border:none;border-radius:18px;padding:0;max-width:440px;width:92vw;box-shadow:0 30px 60px -20px rgba(59,47,38,.5);background:var(--card)}dialog:has(.visual-walkthrough){max-width:720px}
   dialog::backdrop{background:rgba(59,47,38,.45);backdrop-filter:blur(2px)}
   .modal-head{background:var(--paper-2);padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
   .modal-head h3{font-size:1.15rem}
@@ -521,12 +522,36 @@ const MATERIAL_PROFILES = {
   "Resin & Molds":["resin","mold","pigment","gloves","mixing"], "Wood & Natural Materials":["wood","sandpaper","stain","saw","glue"],
   "Kitchen Crafts":["flour","sugar","butter","baking","yeast","jar"], "Maker & Tech":["filament","wire","battery","arduino","vinyl","printer"]
 };
+const VISUAL_GUIDES = {
+  "Chunky ribbed beanie": {image:"assets/guides/chunky-ribbed-beanie.png",steps:[
+    "Choose a chunky yarn and matching large needles. Make a small 10-stitch test swatch; it should feel springy without large gaps.",
+    "Cast on an even number of stitches loosely enough to stretch over your head. Join carefully for knitting in the round, checking that the stitches are not twisted.",
+    "Work knit-one, purl-one ribbing for the folded cuff. Keep your first few rows relaxed; tight ribbing is difficult to pull over the head.",
+    "Change to plain knit stitch and continue until the tube reaches just above your ears. Measure from the cast-on edge rather than guessing.",
+    "Decrease evenly around the crown, placing markers between decrease sections. Pull the remaining live stitches closed only when the crown is small and even.",
+    "Weave in both ends on the inside, fold the cuff, and try it on. Steam lightly if the fabric needs to relax—do not flatten the ribbing." ]},
+  "Market tote from cotton yarn": {image:"assets/guides/cotton-market-tote.png",steps:[
+    "Use sturdy cotton yarn and a hook that creates a firm fabric. Make a small circle or rectangle test so the bag will not stretch too much with groceries.",
+    "Chain the foundation loosely, then work a compact base in single crochet. Count both long sides every round so the base remains symmetrical.",
+    "Build the base until it is as wide as the bag you want. Lay it flat; if it ripples, add fewer increases, and if it cups, add a few more.",
+    "Work upward in an open mesh stitch only after the base lies flat. Keep the first mesh row even because it determines the shape of the entire tote.",
+    "Crochet two handles of equal length and reinforce where they meet the bag with extra rows of single crochet. Test each handle by gently pulling it.",
+    "Weave in every end securely. Place a few light items inside first, then check that the handles and mesh expand evenly before using it for groceries." ]},
+  "Botanical hoop sampler": {image:"assets/guides/botanical-hoop-sampler.png",steps:[
+    "Stretch smooth cotton or linen tightly in a hoop and trace a simple leaf-and-flower outline with a removable fabric pen.",
+    "Separate the embroidery floss if needed, thread the needle, and knot the tail. Start from the back so the knot will be hidden inside the hoop.",
+    "Stitch the stems with a backstitch: take small, even stitches and bring each new stitch back into the end of the previous one.",
+    "Fill leaves with satin stitch, placing each stitch close beside the last and following the leaf’s direction so the shape stays smooth.",
+    "Add small petals or French knots for flowers. Work one color area at a time, carrying floss only short distances behind the fabric.",
+    "Secure the thread with small back stitches on the reverse, trim the excess, then press the finished hoop from the back with a cloth between iron and stitches." ]}
+};
 function guideNeeds(guide){ return MATERIAL_PROFILES[guide.category]||["basic supplies","scissors","adhesive"]; }
 function guideMatch(guide){
   const needs=guideNeeds(guide), owned=state.stash.filter(s=>s.qty>0).map(s=>`${s.name} ${s.note||""} ${s.unit||""}`.toLowerCase());
   const matched=needs.filter(need=>owned.some(item=>item.includes(need))); return {needs,matched,missing:needs.filter(n=>!matched.includes(n)),score:matched.length/needs.length};
 }
 function guideSteps(guide){
+  if(VISUAL_GUIDES[guide.title]) return VISUAL_GUIDES[guide.title].steps;
   const [first,second,third]=guideNeeds(guide);
   return [
     `Set up a clear, comfortable work area and protect it if ${guide.category.toLowerCase()} gets messy. Keep the reference image or idea “${guide.title}” visible.`,
@@ -950,7 +975,15 @@ let guideQuery="", guideTime="any", guideReadiness="all";
 const guideById=id=>GUIDE_LIBRARY.find(g=>g.id===id);
 function openGuide(id){
   const g=guideById(id); if(!g) return; const match=guideMatch(g), steps=guideSteps(g);
-  openModal(`${g.emoji} ${g.title}`,`<div class="guide-visual-large">${g.emoji}</div><p class="meta">${esc(g.craft)} · ${esc(g.category)} · ${g.difficulty===1?"Beginner":g.difficulty===2?"Comfortable beginner":"Confident maker"}</p><p style="margin-top:12px">${esc(g.blurb)}</p><h3 style="margin-top:18px">What you’ll use</h3><ul class="supply-list">${match.needs.map(n=>`<li class="${match.missing.includes(n)?"missing":"ready"}">${match.missing.includes(n)?"Need: ":"In your stash: "}${esc(n)}</li>`).join("")}</ul><h3>Step-by-step plan</h3><ol class="guide-steps">${steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol><p class="details-note">Visual reference is tailored to the craft family. Generate a custom illustrated guide when AI Studio is enabled.</p>`,()=>{ launchGuide(id); });
+  const visual=VISUAL_GUIDES[g.title];
+  openModal(`${g.emoji} ${g.title}`,`${visual?`<img class="guide-visual-large" style="width:100%;padding:0;object-fit:cover" src="${visual.image}" alt="Six visual stages for ${esc(g.title)}">`: `<div class="guide-visual-large">${g.emoji}</div>`}<p class="meta">${esc(g.craft)} · ${esc(g.category)} · ${g.difficulty===1?"Beginner":g.difficulty===2?"Comfortable beginner":"Confident maker"}</p><p style="margin-top:12px">${esc(g.blurb)}</p><h3 style="margin-top:18px">What you’ll use</h3><ul class="supply-list">${match.needs.map(n=>`<li class="${match.missing.includes(n)?"missing":"ready"}">${match.missing.includes(n)?"Need: ":"In your stash: "}${esc(n)}</li>`).join("")}</ul><h3>Step-by-step plan</h3><ol class="guide-steps">${steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>${visual?`<button class="btn btn-s" type="button" onclick="openVisualWalkthrough('${g.id}')">Start visual walkthrough</button>`:`<p class="details-note">Illustrated walkthroughs are being added to the guide library. This plan is ready to launch now.</p>`}`,()=>{ launchGuide(id); });
+}
+function openVisualWalkthrough(id,step=0){
+  const g=guideById(id), visual=g&&VISUAL_GUIDES[g.title]; if(!g||!visual) return;
+  const safeStep=Math.max(0,Math.min(step,visual.steps.length-1)), col=safeStep%3, row=Math.floor(safeStep/3);
+  $("modalTitle").textContent=`${g.emoji} ${g.title} · visual walkthrough`;
+  $("modalBody").innerHTML=`<div class="visual-walkthrough"><div class="step-crop"><img src="${visual.image}" alt="Visual for step ${safeStep+1} of ${esc(g.title)}" style="transform:translate(-${col*33.333}%, -${row*50}%);"></div><p class="walk-step">Step ${safeStep+1} of ${visual.steps.length}</p><p class="walk-copy">${esc(visual.steps[safeStep])}</p><div class="walk-actions"><button class="btn btn-ghost" type="button" ${safeStep===0?"disabled":""} onclick="openVisualWalkthrough('${id}',${safeStep-1})">← Back</button>${safeStep<visual.steps.length-1?`<button class="btn btn-t" type="button" onclick="openVisualWalkthrough('${id}',${safeStep+1})">Next step →</button>`:`<button class="btn btn-s" type="button" onclick="launchGuide('${id}');modal.close();save();render()">Add to my projects</button>`}</div><button class="mini" style="margin-top:14px" type="button" onclick="openGuide('${id}')">View full materials and plan</button></div>`;
+  if(!modal.open) modal.showModal();
 }
 function launchGuide(id){
   const g=guideById(id); if(!g) return false; const [ci,cj]=g.seed, h=ensureHobby(ci,cj), materials=guideNeeds(g).join("\n");
@@ -959,7 +992,8 @@ function launchGuide(id){
 }
 function guideCard(g){
   const match=guideMatch(g), time=g.difficulty===1?"15–30 min":"~1 hour";
-  return `<div class="card guide-card"><div class="washi"></div><div class="guide-visual">${g.emoji}</div><h3>${esc(g.title)}</h3><p class="meta">${esc(g.craft)} · ${time}</p><div class="project-facts"><span class="fact">${match.matched.length}/${match.needs.length} supplies matched</span><span class="fact ${match.missing.length?"missing":"ready"}">${match.missing.length?`${match.missing.length} to find`:"ready to make"}</span></div><p class="details-note">${esc(g.blurb)}</p><div class="card-actions"><button class="mini" onclick="openGuide('${g.id}')">Open step-by-step guide</button></div></div>`;
+  const visual=VISUAL_GUIDES[g.title];
+  return `<div class="card guide-card"><div class="washi"></div><div class="guide-visual">${visual?`<img src="${visual.image}" alt="Visual tutorial preview for ${esc(g.title)}">`:g.emoji}</div><h3>${esc(g.title)}</h3><p class="meta">${esc(g.craft)} · ${time}</p><div class="project-facts"><span class="fact">${match.matched.length}/${match.needs.length} supplies matched</span><span class="fact ${match.missing.length?"missing":"ready"}">${match.missing.length?`${match.missing.length} to find`:"ready to make"}</span>${visual?`<span class="fact ready">visual guide</span>`:""}</div><p class="details-note">${esc(g.blurb)}</p><div class="card-actions"><button class="mini" onclick="openGuide('${g.id}')">${visual?"Open visual guide":"Open step-by-step guide"}</button></div></div>`;
 }
 function renderGuides(){
   const q=guideQuery.trim().toLowerCase();
