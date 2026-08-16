@@ -33,6 +33,7 @@
   .brand h1 em{color:var(--terracotta);font-style:normal}
   .brand p{color:var(--ink-soft);font-size:.95rem;margin-top:2px}
   .tape{display:inline-block;background:rgba(217,164,65,.35);border-left:2px dashed rgba(59,47,38,.2);border-right:2px dashed rgba(59,47,38,.2);padding:3px 14px;transform:rotate(-2deg);font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .account{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--ink-soft)}.account .btn{padding:8px 12px;font-size:.8rem}
 
   nav{max-width:1060px;margin:20px auto 0;padding:0 20px;display:flex;gap:6px;flex-wrap:wrap}
   nav button{
@@ -115,6 +116,12 @@
   .craft-card summary:hover{color:var(--terracotta-dk)}
   .idea-line{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
   .idea-line span{flex:1}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.toolbar input{flex:1;min-width:220px}.toolbar select{width:auto;min-width:150px}
+  .today-hero{background:linear-gradient(135deg,#fff8ea,#f3ead9);border:1.5px solid var(--line);border-radius:var(--r);padding:22px;margin-bottom:18px;box-shadow:var(--shadow)}
+  .today-hero h2{font-size:1.7rem}.choice-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.choice{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font-weight:650;color:var(--ink-soft)}.choice.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .recommendation{border-left:5px solid var(--terracotta);padding:17px 18px}.recommendation h3{font-size:1.35rem}.project-facts{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.fact{font-size:.74rem;font-weight:700;padding:4px 8px;border-radius:99px;background:var(--paper-2);color:var(--ink-soft)}
+  .onboarding{max-width:710px;margin:30px auto;text-align:center;padding:42px 24px}.onboarding h2{font-size:2rem;margin-bottom:8px}.onboarding p{max-width:530px;margin:0 auto 18px;line-height:1.5}
+  .details-note{font-size:.82rem;line-height:1.4;color:var(--ink-soft);margin-top:8px}.ready{color:var(--sage-dk);font-weight:700}.missing{color:var(--terracotta);font-weight:700}
   .rsc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
   .rsc-grid .card:hover{transform:none}
   .rsc-item{padding:8px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
@@ -145,11 +152,13 @@
       <h1>Craft <em>Club</em></h1>
       <p>The guilt-free headquarters for the serially hobbied — every craft, idea &amp; resource inside.</p>
     </div>
+    <div class="account" id="accountBar"><span id="syncStatus">Preparing your craft corner…</span><button class="btn btn-ghost" id="authBtn">Sign in</button></div>
   </div>
 </header>
 
 <nav id="nav">
   <button data-v="dash" class="on">🏡 Dashboard</button>
+  <button data-v="today">☀️ Today</button>
   <button data-v="explore">🧭 Explore</button>
   <button data-v="hobbies">🎨 Hobbies</button>
   <button data-v="projects">🧶 Projects</button>
@@ -160,6 +169,7 @@
 
 <main>
   <section id="v-dash" class="on">
+    <div id="onboarding"></div>
     <div class="stats" id="statGrid"></div>
     <div class="dash-grid">
       <div>
@@ -190,6 +200,16 @@
       </div>
     </div>
   </section>
+  <section id="v-today">
+    <div class="today-hero">
+      <span class="tape">a little progress counts</span>
+      <h2>What feels doable today?</h2>
+      <p class="meta" style="margin-top:5px">Dabble will pick a WIP that fits your actual available time and energy.</p>
+      <div class="choice-row" id="timeChoices"></div>
+      <div class="choice-row" id="energyChoices"></div>
+    </div>
+    <div id="todayPick"></div>
+  </section>
 
   <section id="v-hobbies">
     <div class="row"><h2>Your rotation</h2><button class="btn btn-t" onclick="openHobbyModal()">+ New hobby</button></div>
@@ -198,6 +218,7 @@
 
   <section id="v-projects">
     <div class="row"><h2>Projects &amp; WIPs</h2><button class="btn btn-t" onclick="openProjectModal()">+ New project</button></div>
+    <div class="toolbar"><input id="projectSearch" type="search" placeholder="Search projects, notes, next steps, materials…"><select id="projectSort"><option value="updated">Recently touched</option><option value="name">Name A–Z</option><option value="progress">Most progress</option></select></div>
     <div class="filters" id="projFilters"></div>
     <div class="filters" id="projHobbyFilters" style="margin-bottom:14px"></div>
     <div class="grid" id="projGrid"></div>
@@ -205,6 +226,7 @@
 
   <section id="v-stash">
     <div class="row"><h2>The stash</h2><button class="btn btn-t" onclick="openStashModal()">+ Add supplies</button></div>
+    <div class="toolbar"><input id="stashSearch" type="search" placeholder="Search supplies, locations, notes…"><select id="stashSort"><option value="name">Name A–Z</option><option value="low">Low stock first</option><option value="hobby">Hobby</option></select></div>
     <div class="filters" id="stashFilters" style="margin-bottom:14px"></div>
     <div id="stashWrap"></div>
   </section>
@@ -246,10 +268,11 @@
 </dialog>
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 /* ---------- constants ---------- */
-const LS_KEY = "dabble-v1";
+const LS_KEY = "dabble-v2";
 const HOBBY_STATUS = {
   obsessed:{label:"Obsessed", cls:"p-obsessed"},
   active:{label:"In rotation", cls:"p-active"},
@@ -502,15 +525,53 @@ function seed(){
 }
 function load(){
   try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return seed();
+    const raw = localStorage.getItem(LS_KEY) || localStorage.getItem("dabble-v1");
+    if(!raw) return {hobbies:[],projects:[],stash:[],ideas:[],version:2};
     const data = JSON.parse(raw);
-    if(!data || !Array.isArray(data.hobbies)) return seed();
-    return {hobbies:data.hobbies||[],projects:data.projects||[],stash:data.stash||[],ideas:data.ideas||[]};
-  }catch(e){ console.error("load failed",e); return seed(); }
+    if(!data || !Array.isArray(data.hobbies)) return {hobbies:[],projects:[],stash:[],ideas:[],version:2};
+    return {hobbies:data.hobbies||[],projects:data.projects||[],stash:data.stash||[],ideas:data.ideas||[],version:2};
+  }catch(e){ console.error("load failed",e); return {hobbies:[],projects:[],stash:[],ideas:[],version:2}; }
 }
 let state = load();
-const save = () => { try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("⚠ Could not save — storage full?"); } };
+const SUPABASE_URL = "https://bazjlrualnmbanmhiuau.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ez3TVctnbFIUHqr_dMOUeQ_5WpsYEHs";
+let supabaseClient = null, currentUser = null, cloudTimer = null;
+function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("⚠ Could not save — storage full?"); } }
+const save = () => { saveLocal(); if(currentUser){ clearTimeout(cloudTimer); cloudTimer=setTimeout(syncCloud,500); } };
+function stateHasContent(){ return state.hobbies.length||state.projects.length||state.stash.length||state.ideas.length; }
+function setAccountUI(){
+  const status=$("syncStatus"), btn=$("authBtn"); if(!status||!btn) return;
+  if(currentUser){ status.textContent=`Synced as ${currentUser.email||"your account"}`; btn.textContent="Sign out"; }
+  else { status.textContent="This device only — sign in to sync"; btn.textContent="Sign in"; }
+}
+async function loadCloudState(){
+  if(!supabaseClient||!currentUser) return;
+  const {data,error}=await supabaseClient.from("dabble_states").select("data").eq("user_id",currentUser.id).maybeSingle();
+  if(error){ toast("⚠ Could not load cloud data"); return; }
+  if(data?.data){ state={...data.data,version:2,hobbies:data.data.hobbies||[],projects:data.data.projects||[],stash:data.data.stash||[],ideas:data.data.ideas||[]}; saveLocal(); render(); toast("Your Dabble data is synced ✨"); }
+  else if(stateHasContent()) await syncCloud();
+}
+async function syncCloud(){
+  if(!supabaseClient||!currentUser) return;
+  const {error}=await supabaseClient.from("dabble_states").upsert({user_id:currentUser.id,data:state,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+  if(error) toast("⚠ Changes saved on this device, but cloud sync needs attention"); else setAccountUI();
+}
+async function initCloud(){
+  if(!window.supabase){ setAccountUI(); return; }
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+  const {data:{session}}=await supabaseClient.auth.getSession(); currentUser=session?.user||null; setAccountUI(); if(currentUser) await loadCloudState();
+  supabaseClient.auth.onAuthStateChange(async (_event,session)=>{ currentUser=session?.user||null; setAccountUI(); if(currentUser) await loadCloudState(); });
+}
+function openAuthModal(){
+  if(currentUser){ supabaseClient.auth.signOut(); return; }
+  openModal("Sync Dabble across devices",`<p class="meta" style="margin-top:10px">Create an account or sign in to keep your projects, stash, and ideas safely synced.</p><label>Email</label><input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com"><label>Password</label><input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters"><p class="details-note">New here? Use a new email and we’ll create your account. You may need to confirm your email before signing in.</p>`,async()=>{
+    const email=$("auth-email").value.trim(), password=$("auth-password").value; if(!email||password.length<8){ toast("Enter an email and a password with at least 8 characters"); return false; }
+    let {error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error){ const signup=await supabaseClient.auth.signUp({email,password}); error=signup.error; if(!error) toast("Account created — check your email to confirm it, then sign in."); }
+    if(error){ toast("⚠ "+error.message); return false; }
+    return true;
+  });
+}
 
 /* ---------- helpers ---------- */
 const $ = id => document.getElementById(id);
@@ -518,6 +579,12 @@ const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;"
 const hobbyById = id => state.hobbies.find(h=>h.id===id);
 const hobbyLabel = id => { const h=hobbyById(id); return h ? `${h.emoji} ${esc(h.name)}` : "🗂 Unsorted"; };
 const daysAgo = ts => { if(!ts) return ""; const d=Math.floor((Date.now()-ts)/86400000); return d===0?"today":d===1?"yesterday":`${d}d ago`; };
+const projectMaterials = p => (p.materials||"").split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+function projectSupplyCheck(p){
+  const needs=projectMaterials(p); if(!needs.length) return {needs:[],missing:[]};
+  const available=state.stash.filter(s=>s.qty>0).map(s=>s.name.toLowerCase());
+  return {needs,missing:needs.filter(n=>!available.some(s=>s.includes(n.toLowerCase())||n.toLowerCase().includes(s)))};
+}
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
 function confetti(){
   for(let i=0;i<90;i++){
@@ -560,7 +627,7 @@ function openModal(title, bodyHTML, onSubmit){
   $("modalBody").innerHTML=bodyHTML+`<div class="modal-foot">
     <button class="btn btn-ghost" type="button" onclick="modal.close()">Cancel</button>
     <button class="btn btn-t" id="modalSave" type="button">Save</button></div>`;
-  $("modalSave").onclick=()=>{ if(onSubmit()!==false){ modal.close(); save(); render(); } };
+  $("modalSave").onclick=async()=>{ if(await onSubmit()!==false){ modal.close(); save(); render(); } };
   modal.showModal();
   const first=$("modalBody").querySelector("input,select,textarea"); if(first) first.focus();
 }
@@ -616,6 +683,7 @@ function renderHobbies(){
 
 /* ---------- projects ---------- */
 let projFilter="all", projHobby="all";
+let projectQuery="", projectSort="updated";
 function openProjectModal(id, presetName, presetHobby){
   const p = id ? state.projects.find(x=>x.id===id) : null;
   openModal(p?"Edit project":"New project", `
@@ -624,11 +692,15 @@ function openProjectModal(id, presetName, presetHobby){
     <label>Status</label><select id="f-pstatus">${Object.entries(PROJ_STATUS).map(([k,v])=>`<option value="${k}" ${p&&p.status===k?"selected":""}>${v.label}</option>`).join("")}</select>
     <label>Progress — <span id="f-pv">${p?p.progress:0}</span>%</label>
     <input type="range" id="f-pprog" min="0" max="100" value="${p?p.progress:0}" oninput="document.getElementById('f-pv').textContent=this.value">
+    <label>Next tiny step</label><input id="f-pnext" maxlength="180" value="${p?esc(p.nextStep):""}" placeholder="e.g. Cast on sleeve stitches">
+    <label>Time for the next step</label><select id="f-ptime"><option value="quick" ${p&&p.time==="quick"?"selected":""}>Quick (15–30 min)</option><option value="steady" ${p&&p.time==="steady"?"selected":""}>Steady (about an hour)</option><option value="deep" ${p&&p.time==="deep"?"selected":""}>Deep dive (2+ hours)</option></select>
+    <label>Energy required</label><select id="f-penergy"><option value="low" ${p&&p.energy==="low"?"selected":""}>Low — easy, cozy</option><option value="medium" ${p&&p.energy==="medium"?"selected":""}>Medium — focused</option><option value="high" ${p&&p.energy==="high"?"selected":""}>High — full brain power</option></select>
+    <label>Materials needed</label><textarea id="f-pmaterials" rows="2" maxlength="500" placeholder="One item per line — e.g. rust merino wool, 5 mm needles">${p?esc(p.materials):""}</textarea>
     <label>Notes</label><textarea id="f-pnotes" rows="3" maxlength="500" placeholder="Where you left off, what you need…">${p?esc(p.notes):""}</textarea>
   `, ()=>{
     const name=$("f-pname").value.trim(); if(!name){ toast("Name it first!"); return false; }
     const wasFinished = p && p.status==="finished";
-    const data={name,hobbyId:$("f-phobby").value||null,status:$("f-pstatus").value,progress:+$("f-pprog").value,notes:$("f-pnotes").value.trim(),updated:Date.now()};
+    const data={name,hobbyId:$("f-phobby").value||null,status:$("f-pstatus").value,progress:+$("f-pprog").value,nextStep:$("f-pnext").value.trim(),time:$("f-ptime").value,energy:$("f-penergy").value,materials:$("f-pmaterials").value.trim(),notes:$("f-pnotes").value.trim(),updated:Date.now()};
     state = p
       ? {...state, projects: state.projects.map(x=>x.id===p.id?{...x,...data}:x)}
       : {...state, projects: [...state.projects, {id:uid(),...data}]};
@@ -657,6 +729,7 @@ function deleteProject(id){
 }
 function projCard(p){
   const st=PROJ_STATUS[p.status]||PROJ_STATUS.idea;
+  const supplies=projectSupplyCheck(p);
   const quick = p.status==="finished" ? "" : `
     ${p.status!=="inprogress"?`<button class="mini" onclick="quickStatus('${p.id}','inprogress')">▶ Work on it</button>`:""}
     ${p.status==="inprogress"?`<button class="mini" onclick="quickStatus('${p.id}','hibernating')">😴 Hibernate</button>`:""}
@@ -666,9 +739,11 @@ function projCard(p){
     <h3>${esc(p.name)}</h3>
     <p class="meta">${hobbyLabel(p.hobbyId)} · touched ${daysAgo(p.updated)}</p>
     <span class="pill ${st.cls}" style="margin-top:8px;display:inline-block">${st.label}</span>
+    <div class="project-facts"><span class="fact">${p.time==="deep"?"2+ hours":p.time==="steady"?"~1 hour":"15–30 min"}</span><span class="fact">${p.energy||"medium"} energy</span>${supplies.needs.length?`<span class="fact ${supplies.missing.length?"missing":"ready"}">${supplies.missing.length?`${supplies.missing.length} supply to get`:"supplies ready"}</span>`:""}</div>
     <div class="bar"><i id="bar-${p.id}" style="width:${p.progress}%"></i></div>
     <input type="range" min="0" max="100" value="${p.progress}" onchange="setProgress('${p.id}',this.value)" aria-label="progress">
     ${p.notes?`<p class="meta" style="margin-top:8px">📝 ${esc(p.notes)}</p>`:""}
+    ${p.nextStep?`<p class="details-note"><strong>Next:</strong> ${esc(p.nextStep)}</p>`:""}
     <div class="card-actions">${quick}
       <button class="mini" onclick="openProjectModal('${p.id}')">✏️</button>
       <button class="mini" onclick="deleteProject('${p.id}')">🗑</button>
@@ -684,13 +759,15 @@ function renderProjects(){
   const list=state.projects
     .filter(p=>projFilter==="all"||p.status===projFilter)
     .filter(p=>projHobby==="all"||p.hobbyId===projHobby)
-    .sort((a,b)=>(b.updated||0)-(a.updated||0));
+    .filter(p=>!projectQuery || [p.name,p.notes,p.nextStep,p.materials].join(" ").toLowerCase().includes(projectQuery))
+    .sort((a,b)=>projectSort==="name"?a.name.localeCompare(b.name):projectSort==="progress"?(b.progress||0)-(a.progress||0):(b.updated||0)-(a.updated||0));
   $("projGrid").innerHTML = list.length ? list.map(projCard).join("")
     : `<div class="empty" style="grid-column:1/-1"><span class="big">🧺</span>Nothing here. Either you're incredibly disciplined or you should start something new.</div>`;
 }
 
 /* ---------- stash ---------- */
 let stashFilter="all";
+let stashQuery="", stashSort="name";
 function openStashModal(id){
   const s = id ? state.stash.find(x=>x.id===id) : null;
   openModal(s?"Edit supplies":"Add supplies", `
@@ -718,7 +795,10 @@ function renderStash(){
   const hobbies=[{id:"all",emoji:"🗃",name:"All"},...state.hobbies];
   $("stashFilters").innerHTML=hobbies.map(h=>
     `<button class="chip ${stashFilter===h.id?"on":""}" onclick="stashFilter='${h.id}';render()">${h.emoji} ${esc(h.name)}</button>`).join("");
-  const list=state.stash.filter(s=>stashFilter==="all"||s.hobbyId===stashFilter);
+  const list=state.stash
+    .filter(s=>stashFilter==="all"||s.hobbyId===stashFilter)
+    .filter(s=>!stashQuery || [s.name,s.location,s.note,s.unit].join(" ").toLowerCase().includes(stashQuery))
+    .sort((a,b)=>stashSort==="low"?(a.qty||0)-(b.qty||0):stashSort==="hobby"?hobbyLabel(a.hobbyId).localeCompare(hobbyLabel(b.hobbyId)):a.name.localeCompare(b.name));
   $("stashWrap").innerHTML = !list.length
     ? `<div class="empty"><span class="big">📦</span>Empty stash?! Quick, there must be a craft store sale somewhere.</div>`
     : `<div class="stash-wrap"><table class="stash-table">
@@ -782,6 +862,8 @@ function refreshStats(){
     <div class="stat"><b>${state.stash.length}</b><span>Stash items</span></div>`;
 }
 function renderDash(){
+  const empty=state.hobbies.length===0&&state.projects.length===0&&state.stash.length===0&&state.ideas.length===0;
+  $("onboarding").innerHTML=empty?`<div class="panel onboarding"><span class="big">🧶</span><h2>Welcome to your guilt-free craft corner.</h2><p>Start with one hobby and one project. Dabble will help you keep track of the next small step, the supplies you have, and what actually fits today.</p><button class="btn btn-t" onclick="openHobbyModal()">Add your first hobby</button> <button class="btn btn-ghost" onclick="openProjectModal()">Start a project instead</button></div>`:"";
   refreshStats();
   const ob = state.hobbies.find(h=>h.status==="obsessed");
   $("obsession").innerHTML = ob
@@ -798,6 +880,24 @@ function renderDash(){
   $("hallOfFame").innerHTML = done.length
     ? done.map(p=>`<div style="padding:7px 0;border-bottom:1px dashed var(--line)">🏅 <strong>${esc(p.name)}</strong> <span class="meta">· ${hobbyLabel(p.hobbyId)} · ${daysAgo(p.updated)}</span></div>`).join("")
     : `<p class="meta">No finishes yet. The first one is going to feel amazing.</p>`;
+}
+
+/* ---------- today: a practical next-action picker ---------- */
+let todayTime="quick", todayEnergy="low";
+const timeOptions=[['quick','⏱ 15–30 min'],['steady','🫖 About an hour'],['deep','🧵 2+ hours']];
+const energyOptions=[['low','🌿 Low energy'],['medium','✨ Medium energy'],['high','⚡ Full focus']];
+function renderToday(){
+  $("timeChoices").innerHTML=`<span class="flabel">I have</span>`+timeOptions.map(([k,label])=>`<button class="choice ${todayTime===k?"on":""}" onclick="todayTime='${k}';renderToday()">${label}</button>`).join("");
+  $("energyChoices").innerHTML=`<span class="flabel">I feel</span>`+energyOptions.map(([k,label])=>`<button class="choice ${todayEnergy===k?"on":""}" onclick="todayEnergy='${k}';renderToday()">${label}</button>`).join("");
+  const candidates=state.projects.filter(p=>p.status==="inprogress"||p.status==="hibernating");
+  if(!candidates.length){ $("todayPick").innerHTML=`<div class="panel empty"><span class="big">☀️</span>Add a project to get a gentle, realistic recommendation for today.<br><button class="btn btn-t" style="margin-top:14px" onclick="openProjectModal()">Add a project</button></div>`; return; }
+  const score=p=>{
+    let s=0; if((p.time||"quick")===todayTime) s+=4; if((p.energy||"medium")===todayEnergy) s+=3;
+    if(p.status==="inprogress") s+=2; if(projectSupplyCheck(p).missing.length===0) s+=2; return s+Math.random();
+  };
+  const pick=[...candidates].sort((a,b)=>score(b)-score(a))[0], supplies=projectSupplyCheck(pick);
+  const supplyCopy=!supplies.needs.length?"Add materials to this project when you want a readiness check.":supplies.missing.length?`Before you start: pick up ${supplies.missing.join(", ")}.`:"Your listed supplies are in the stash — you’re ready to go.";
+  $("todayPick").innerHTML=`<div class="panel recommendation"><p class="meta">YOUR NEXT MAKE</p><h3>${esc(pick.name)}</h3><p class="meta" style="margin-top:5px">${hobbyLabel(pick.hobbyId)} · ${pick.progress||0}% complete</p><p style="margin-top:14px"><strong>Next tiny step:</strong> ${esc(pick.nextStep||"Open it up and decide on one 15-minute move.")}</p><p class="details-note ${supplies.missing.length?"missing":"ready"}">${esc(supplyCopy)}</p><div class="card-actions"><button class="btn btn-t" onclick="quickStatus('${pick.id}','inprogress');document.querySelector('[data-v=projects]').click()">I’m doing this</button><button class="mini" onclick="openProjectModal('${pick.id}')">Edit details</button></div></div>`;
 }
 
 /* ---------- spin the wheel ---------- */
@@ -836,7 +936,7 @@ $("importFile").addEventListener("change",e=>{
       const d=JSON.parse(r.result);
       if(!d||!Array.isArray(d.hobbies)||!Array.isArray(d.projects)) throw new Error("bad shape");
       if(!confirm("Replace everything with this backup?")) return;
-      state={hobbies:d.hobbies,projects:d.projects||[],stash:d.stash||[],ideas:d.ideas||[]};
+      state={hobbies:d.hobbies,projects:d.projects||[],stash:d.stash||[],ideas:d.ideas||[],version:2};
       save(); render(); toast("Backup restored ⬆");
     }catch(err){ toast("⚠ That file doesn't look like a Dabble backup"); }
   };
@@ -935,10 +1035,15 @@ function renderCotd(){
 }
 
 /* ---------- render root ---------- */
-function render(){ renderDash(); renderCotd(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); renderExplore(); }
+function render(){ renderDash(); renderToday(); renderCotd(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); renderExplore(); }
+$("projectSearch").addEventListener("input",e=>{ projectQuery=e.target.value.trim().toLowerCase(); renderProjects(); });
+$("projectSort").addEventListener("change",e=>{ projectSort=e.target.value; renderProjects(); });
+$("stashSearch").addEventListener("input",e=>{ stashQuery=e.target.value.trim().toLowerCase(); renderStash(); });
+$("stashSort").addEventListener("change",e=>{ stashSort=e.target.value; renderStash(); });
+$("authBtn").addEventListener("click",openAuthModal);
 $("expSearch").addEventListener("input",e=>{ expQuery=e.target.value; renderExploreGrid(); });
 renderResources();
-save(); render();
+save(); render(); initCloud();
 </script>
 </body>
 </html>
