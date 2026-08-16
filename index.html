@@ -122,6 +122,8 @@
   .recommendation{border-left:5px solid var(--terracotta);padding:17px 18px}.recommendation h3{font-size:1.35rem}.project-facts{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.fact{font-size:.74rem;font-weight:700;padding:4px 8px;border-radius:99px;background:var(--paper-2);color:var(--ink-soft)}
   .onboarding{max-width:710px;margin:30px auto;text-align:center;padding:42px 24px}.onboarding h2{font-size:2rem;margin-bottom:8px}.onboarding p{max-width:530px;margin:0 auto 18px;line-height:1.5}
   .details-note{font-size:.82rem;line-height:1.4;color:var(--ink-soft);margin-top:8px}.ready{color:var(--sage-dk);font-weight:700}.missing{color:var(--terracotta);font-weight:700}
+  .make-intro{background:linear-gradient(135deg,#f6eee0,#e8f0df);border:1.5px solid var(--line);border-radius:var(--r);padding:24px;margin-bottom:18px;box-shadow:var(--shadow)}.make-intro h2{font-size:1.8rem}.make-intro p{max-width:680px;line-height:1.5;margin-top:7px}.make-grid{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.6fr);gap:18px}@media(max-width:760px){.make-grid{grid-template-columns:1fr}}
+  .guide-card .guide-visual{height:92px;border-radius:10px;background:linear-gradient(135deg,#f2d7b6,#d9e5c8);display:flex;align-items:center;justify-content:center;font-size:3rem;margin:8px 0 12px}.guide-card .card-actions{border-top:1px dashed var(--line);padding-top:9px}.guide-steps{counter-reset:step;margin:14px 0}.guide-steps li{list-style:none;counter-increment:step;position:relative;padding:0 0 13px 38px;line-height:1.48}.guide-steps li::before{content:counter(step);position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:var(--terracotta);color:#fff;font-size:.76rem;font-weight:800}.guide-visual-large{padding:26px;border-radius:14px;background:linear-gradient(135deg,#f4ddbd,#dbe7ce);font-size:4rem;text-align:center;margin:12px 0}.supply-list{margin:10px 0;padding-left:18px;line-height:1.65}.make-count{font-weight:700;color:var(--sage-dk)}
   .rsc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
   .rsc-grid .card:hover{transform:none}
   .rsc-item{padding:8px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
@@ -158,6 +160,7 @@
 
 <nav id="nav">
   <button data-v="dash" class="on">🏡 Dashboard</button>
+  <button data-v="make">🪄 Make with my stash</button>
   <button data-v="today">☀️ Today</button>
   <button data-v="explore">🧭 Explore</button>
   <button data-v="hobbies">🎨 Hobbies</button>
@@ -175,7 +178,8 @@
       <div>
         <div class="panel spin-zone">
           <h2>Can't decide? 🎡</h2>
-          <p class="meta" style="margin-top:4px">Let fate pick tonight's project from your WIP pile.</p>
+          <p class="meta" style="margin-top:4px">Choose from your WIPs, your stash, or the full guide encyclopedia.</p>
+          <div class="choice-row" id="spinModes"><button class="choice on" data-spin="wip">Pick a WIP</button><button class="choice" data-spin="stash">Use my stash</button><button class="choice" data-spin="surprise">Surprise me</button></div>
           <div class="spin-result serif" id="spinResult">— the wheel awaits —</div>
           <button class="btn btn-t" id="spinBtn">Spin for me</button>
         </div>
@@ -198,6 +202,18 @@
           <div id="recentWips" style="margin-top:10px"></div>
         </div>
       </div>
+    </div>
+  </section>
+  <section id="v-make">
+    <div class="make-intro">
+      <span class="tape">your supplies, your next make</span>
+      <h2>What can I make with what I already have?</h2>
+      <p>Dabble checks your stash against a 100+ project guide encyclopedia, then gives you a complete plan you can launch right away.</p>
+      <div class="card-actions"><button class="btn btn-t" onclick="openStashModal()">Add what I have</button><button class="btn btn-ghost" onclick="document.querySelector('[data-v=stash]').click()">View my stash</button></div>
+    </div>
+    <div class="make-grid">
+      <div class="panel"><h3>Your match settings</h3><label>Search the guide encyclopedia</label><input id="guideSearch" type="search" placeholder="e.g. cozy, gift, beginner, yarn"><label>Time available</label><select id="guideTime"><option value="any">Any amount of time</option><option value="quick">15–30 minutes</option><option value="steady">About an hour</option><option value="deep">A longer craft session</option></select><label>Show</label><select id="guideReadiness"><option value="all">All ideas</option><option value="ready">Only ready-to-make ideas</option><option value="close">Almost ready — one or two supplies away</option></select><p class="details-note" id="stashSummary"></p></div>
+      <div><div class="row"><h2>Guide encyclopedia</h2><span class="meta" id="guideCount"></span></div><div class="grid" id="guideGrid"></div></div>
     </div>
   </section>
   <section id="v-today">
@@ -494,6 +510,35 @@ const RESOURCES = [
   ["Michaels","https://www.michaels.com","Big-box craft everything"]]}
 ];
 
+/* ---------- 120 launchable project guides ---------- */
+const GUIDE_LIBRARY = CRAFT_CATALOG.flatMap((category,ci)=>category.crafts.flatMap((craft,cj)=>
+  craft.i.map((idea,ik)=>({id:`g-${ci}-${cj}-${ik}`,category:category.cat,categoryEmoji:category.emoji,craft:craft.n,emoji:craft.e,title:idea,blurb:craft.b,difficulty:craft.d,cost:craft.c,seed:[ci,cj,ik]}))
+)).slice(0,120);
+const MATERIAL_PROFILES = {
+  "Fiber & Yarn":["yarn","wool","cotton","hook","needle","thread","floss"], "Needle & Thread":["thread","floss","needle","fabric","hoop","yarn"],
+  "Paper Crafts":["paper","cardstock","glue","tape","scissors","pen"], "Paint & Draw":["paint","brush","paper","canvas","pencil","ink"],
+  "Calligraphy & Lettering":["pen","ink","paper","marker","brush"], "Clay & Sculpture":["clay","paint","tool","glaze"],
+  "Resin & Molds":["resin","mold","pigment","gloves","mixing"], "Wood & Natural Materials":["wood","sandpaper","stain","saw","glue"],
+  "Kitchen Crafts":["flour","sugar","butter","baking","yeast","jar"], "Maker & Tech":["filament","wire","battery","arduino","vinyl","printer"]
+};
+function guideNeeds(guide){ return MATERIAL_PROFILES[guide.category]||["basic supplies","scissors","adhesive"]; }
+function guideMatch(guide){
+  const needs=guideNeeds(guide), owned=state.stash.filter(s=>s.qty>0).map(s=>`${s.name} ${s.note||""} ${s.unit||""}`.toLowerCase());
+  const matched=needs.filter(need=>owned.some(item=>item.includes(need))); return {needs,matched,missing:needs.filter(n=>!matched.includes(n)),score:matched.length/needs.length};
+}
+function guideSteps(guide){
+  const [first,second,third]=guideNeeds(guide);
+  return [
+    `Set up a clear, comfortable work area and protect it if ${guide.category.toLowerCase()} gets messy. Keep the reference image or idea “${guide.title}” visible.`,
+    `Gather ${first}, ${second}, and ${third}, plus basic tools. Check quantities before cutting, mixing, or committing to a first stitch.`,
+    `Make a tiny test: a swatch, color sample, paper mock-up, or small practice piece. Adjust scale and colors while changes are easy.`,
+    `Build the main shape in small sections. Complete one repeatable unit at a time rather than trying to finish everything in one pass.`,
+    `Pause after the first section and compare it with your intended size, texture, and color balance. Correct now before continuing.`,
+    `Finish the remaining sections, then add the detail that makes this recognizably “${guide.title}.”`,
+    `Trim, cure, block, press, bake, or otherwise finish according to the materials you used. Let it rest before judging the result.`,
+    `Photograph the finish, note what you would change next time, and save leftovers back to your stash.`
+  ];
+}
 /* ---------- state ---------- */
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 function seed(){
@@ -900,21 +945,62 @@ function renderToday(){
   $("todayPick").innerHTML=`<div class="panel recommendation"><p class="meta">YOUR NEXT MAKE</p><h3>${esc(pick.name)}</h3><p class="meta" style="margin-top:5px">${hobbyLabel(pick.hobbyId)} · ${pick.progress||0}% complete</p><p style="margin-top:14px"><strong>Next tiny step:</strong> ${esc(pick.nextStep||"Open it up and decide on one 15-minute move.")}</p><p class="details-note ${supplies.missing.length?"missing":"ready"}">${esc(supplyCopy)}</p><div class="card-actions"><button class="btn btn-t" onclick="quickStatus('${pick.id}','inprogress');document.querySelector('[data-v=projects]').click()">I’m doing this</button><button class="mini" onclick="openProjectModal('${pick.id}')">Edit details</button></div></div>`;
 }
 
+/* ---------- make with my stash + guide encyclopedia ---------- */
+let guideQuery="", guideTime="any", guideReadiness="all";
+const guideById=id=>GUIDE_LIBRARY.find(g=>g.id===id);
+function openGuide(id){
+  const g=guideById(id); if(!g) return; const match=guideMatch(g), steps=guideSteps(g);
+  openModal(`${g.emoji} ${g.title}`,`<div class="guide-visual-large">${g.emoji}</div><p class="meta">${esc(g.craft)} · ${esc(g.category)} · ${g.difficulty===1?"Beginner":g.difficulty===2?"Comfortable beginner":"Confident maker"}</p><p style="margin-top:12px">${esc(g.blurb)}</p><h3 style="margin-top:18px">What you’ll use</h3><ul class="supply-list">${match.needs.map(n=>`<li class="${match.missing.includes(n)?"missing":"ready"}">${match.missing.includes(n)?"Need: ":"In your stash: "}${esc(n)}</li>`).join("")}</ul><h3>Step-by-step plan</h3><ol class="guide-steps">${steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol><p class="details-note">Visual reference is tailored to the craft family. Generate a custom illustrated guide when AI Studio is enabled.</p>`,()=>{ launchGuide(id); });
+}
+function launchGuide(id){
+  const g=guideById(id); if(!g) return false; const [ci,cj]=g.seed, h=ensureHobby(ci,cj), materials=guideNeeds(g).join("\n");
+  state={...state,projects:[...state.projects,{id:uid(),name:g.title,hobbyId:h.id,status:"idea",progress:0,nextStep:guideSteps(g)[0],time:g.difficulty===1?"quick":"steady",energy:g.difficulty===3?"high":"medium",materials,notes:`Started from the ${g.craft} guide encyclopedia.`,updated:Date.now()}]};
+  toast("Project plan added — it’s ready when you are ✨"); return true;
+}
+function guideCard(g){
+  const match=guideMatch(g), time=g.difficulty===1?"15–30 min":"~1 hour";
+  return `<div class="card guide-card"><div class="washi"></div><div class="guide-visual">${g.emoji}</div><h3>${esc(g.title)}</h3><p class="meta">${esc(g.craft)} · ${time}</p><div class="project-facts"><span class="fact">${match.matched.length}/${match.needs.length} supplies matched</span><span class="fact ${match.missing.length?"missing":"ready"}">${match.missing.length?`${match.missing.length} to find`:"ready to make"}</span></div><p class="details-note">${esc(g.blurb)}</p><div class="card-actions"><button class="mini" onclick="openGuide('${g.id}')">Open step-by-step guide</button></div></div>`;
+}
+function renderGuides(){
+  const q=guideQuery.trim().toLowerCase();
+  const results=GUIDE_LIBRARY.filter(g=>{
+    const match=guideMatch(g), search=`${g.title} ${g.craft} ${g.category} ${g.blurb}`.toLowerCase();
+    if(q&&!search.includes(q)) return false;
+    if(guideTime!=="any" && (guideTime==="quick"?g.difficulty!==1:guideTime==="steady"?g.difficulty===3:g.difficulty!==3)) return false;
+    if(guideReadiness==="ready"&&match.missing.length) return false;
+    if(guideReadiness==="close"&&(match.missing.length<1||match.missing.length>2)) return false;
+    return true;
+  }).sort((a,b)=>guideMatch(b).score-guideMatch(a).score||a.title.localeCompare(b.title));
+  $("guideCount").textContent=`${results.length} of ${GUIDE_LIBRARY.length} launchable ideas`;
+  $("stashSummary").innerHTML=state.stash.length?`You have <strong>${state.stash.length}</strong> stash items. Matches become more useful as you add quantities, colors, and material names.`:`Your stash is empty. Add a few supplies to see what you can make right now.`;
+  $("guideGrid").innerHTML=results.length?results.map(guideCard).join(""):`<div class="empty" style="grid-column:1/-1"><span class="big">🔎</span>No guides match those settings yet. Try a broader search or add supplies to your stash.</div>`;
+}
+
 /* ---------- spin the wheel ---------- */
+let spinMode="wip";
+$("spinModes").addEventListener("click",e=>{
+  const choice=e.target.closest("button[data-spin]"); if(!choice) return;
+  spinMode=choice.dataset.spin;
+  $$("#spinModes .choice").forEach(b=>b.classList.toggle("on",b===choice));
+  $("spinResult").textContent=spinMode==="wip"?"— choosing a WIP —":spinMode==="stash"?"— finding a stash match —":"— surprise me —";
+});
 $("spinBtn").addEventListener("click",()=>{
-  const pool=state.projects.filter(p=>p.status==="inprogress"||p.status==="hibernating");
+  const projectPool=state.projects.filter(p=>p.status==="inprogress"||p.status==="hibernating").map(p=>({title:p.name,detail:`${hobbyLabel(p.hobbyId)} · ${p.progress||0}% done`,project:p}));
+  const stashPool=GUIDE_LIBRARY.filter(g=>guideMatch(g).matched.length>0).map(g=>({title:g.title,detail:`${guideMatch(g).matched.length}/${guideMatch(g).needs.length} supplies in your stash`,guide:g}));
+  const guidePool=GUIDE_LIBRARY.map(g=>({title:g.title,detail:`${g.craft} guide`,guide:g}));
+  const pool=spinMode==="wip"?projectPool:spinMode==="stash"?stashPool:guidePool;
   const out=$("spinResult");
-  if(!pool.length){ out.innerHTML=`<span class="meta">No WIPs to choose from — start something first!</span>`; return; }
+  if(!pool.length){ out.innerHTML=`<span class="meta">${spinMode==="wip"?"No WIPs yet — launch a guide or add a project first!":"Add a few stash items first, then I’ll find something you can make."}</span>`; return; }
   const btn=$("spinBtn"); btn.disabled=true;
   const t0=Date.now();
   const tick=setInterval(()=>{
     const p=pool[Math.floor(Math.random()*pool.length)];
-    out.style.color="var(--ink-soft)"; out.textContent=p.name;
+    out.style.color="var(--ink-soft)"; out.textContent=p.title;
     if(Date.now()-t0>SPIN_MS){
       clearInterval(tick);
       const pick=pool[Math.floor(Math.random()*pool.length)];
       out.style.color="var(--terracotta)";
-      out.innerHTML=`🎯 ${esc(pick.name)}<small>${hobbyLabel(pick.hobbyId)} · ${pick.progress}% done — the wheel has spoken.</small>`;
+      out.innerHTML=`🎯 ${esc(pick.title)}<small>${esc(pick.detail)} — the wheel has spoken.</small>${pick.guide?`<button class="mini" style="margin-top:9px" onclick="openGuide('${pick.guide.id}')">Open step-by-step guide</button>`:""}`;
       btn.disabled=false; chime();
     }
   },SPIN_TICK);
@@ -1035,11 +1121,14 @@ function renderCotd(){
 }
 
 /* ---------- render root ---------- */
-function render(){ renderDash(); renderToday(); renderCotd(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); renderExplore(); }
+function render(){ renderDash(); renderToday(); renderGuides(); renderCotd(); renderHobbies(); renderProjects(); renderStash(); renderIdeas(); renderExplore(); }
 $("projectSearch").addEventListener("input",e=>{ projectQuery=e.target.value.trim().toLowerCase(); renderProjects(); });
 $("projectSort").addEventListener("change",e=>{ projectSort=e.target.value; renderProjects(); });
 $("stashSearch").addEventListener("input",e=>{ stashQuery=e.target.value.trim().toLowerCase(); renderStash(); });
 $("stashSort").addEventListener("change",e=>{ stashSort=e.target.value; renderStash(); });
+$("guideSearch").addEventListener("input",e=>{ guideQuery=e.target.value; renderGuides(); });
+$("guideTime").addEventListener("change",e=>{ guideTime=e.target.value; renderGuides(); });
+$("guideReadiness").addEventListener("change",e=>{ guideReadiness=e.target.value; renderGuides(); });
 $("authBtn").addEventListener("click",openAuthModal);
 $("expSearch").addEventListener("input",e=>{ expQuery=e.target.value; renderExploreGrid(); });
 renderResources();
