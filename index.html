@@ -567,7 +567,7 @@ function openAuthModal(){
   openModal("Sync Dabble across devices",`<p class="meta" style="margin-top:10px">Create an account or sign in to keep your projects, stash, and ideas safely synced.</p><label>Email</label><input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com"><label>Password</label><input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters"><p class="details-note">New here? Use a new email and we’ll create your account. You may need to confirm your email before signing in.</p>`,async()=>{
     const email=$("auth-email").value.trim(), password=$("auth-password").value; if(!email||password.length<8){ toast("Enter an email and a password with at least 8 characters"); return false; }
     let {error}=await supabaseClient.auth.signInWithPassword({email,password});
-    if(error){ const signup=await supabaseClient.auth.signUp({email,password}); error=signup.error; if(!error) toast("Account created — check your email to confirm it, then sign in."); }
+    if(error){ const signup=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin}}); error=signup.error; if(!error) toast("Account created — check your email to confirm it, then sign in."); }
     if(error){ toast("⚠ "+error.message); return false; }
     return true;
   });
